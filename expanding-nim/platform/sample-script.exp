@@ -1,0 +1,8 @@
+#!/usr/bin/expect -f
+
+while {true} {
+    expect {
+        "Please enter your move: " {send "3 0\n"}
+        "Game over" {exit}
+    }
+}
