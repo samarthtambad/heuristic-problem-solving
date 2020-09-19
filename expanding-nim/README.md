@@ -22,3 +22,17 @@ Max Number of stones removable =
 ```
 
 ## Approaches
+```
+The following variables defines the current state of the game. 
+state: current_num, current_max, cur_player, player1_resets, player2_resets
+
+Questions:
+1. Are there states that are guaranteed to cause loss like in the classic nim game?
+2. At a particular state, is it deterministic whether the 
+```
+
+## References
+1. https://www.ics.uci.edu/~goodrich/teach/cs260P/notes/GameStrategies.pdf
+
+
+## Example game
