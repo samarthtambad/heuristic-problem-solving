@@ -6,9 +6,6 @@ import requests
 import time
 import random
 
-opponent_reset = 4
-winning_base_states = set([1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15])
-losing_base_states = set([4, 8, 12, 16])
 
 def create_session(base_url, player_name, init_stones):
     print("\nCreating a new session ... ", end='')
@@ -43,24 +40,6 @@ def session_status(base_url, session_id, token):
     return data
     
 
-def calc_winning_moves(stones, current_max, is_player):
-    res = 0
-    if is_player:
-        if stones in winning_base_states:
-            return 1
-        if stones in losing_base_states:
-            return -1
-        for i in range(1, current_max+1):
-            res += calc_winning_moves(stones-i, current_max, not is_player)
-    else:
-        if stones in winning_base_states:
-            return -1
-        if stones in losing_base_states:
-            return 1
-        for i in range(1, current_max+1):
-            res += calc_winning_moves(stones-i, current_max, not is_player)
-    return res
-
 def make_move(base_url, session_id, token, auto_play, status):
     print("Stones Left:", status["stones_left"])
     print("Reset Imposed:", status["reset"])
@@ -69,25 +48,25 @@ def make_move(base_url, session_id, token, auto_play, status):
     print("Your Start Time:", status["start_time"])
     print("Your Time Left: {} s".format(status["time_left"]))
     print("Please enter how much stones you want to remove [1-{}]: ".format(status["accept_max_value"]), end='')
-
-    stones = status["stones_left"]
-    # reset = True if status["reset"] == "yes" else False
-    # current_max = status["current_max"]
-    accept_max_value = status["accept_max_value"]
-    ans = None
-    impose_reset = "no"
     
-    # check if opponent can be forced to losing base state
-    for i in range(1, accept_max_value+1):
-        if (stones - i) in losing_base_states:
-            ans = i
-            impose_reset = "yes"
-            break
-    
-    if ans is None:
-        ans = random.randint(1, accept_max_value)
+    if auto_play:
+        num = random.randint(1, status["accept_max_value"])
+        print(num)
         
-    submit_move(base_url, session_id, token, ans, impose_reset)
+    else:
+        num = int(input())
+        
+    print("Do you want to impose reset [yes/No]: ", end='')
+    
+    if auto_play:
+        reset = "no"
+        print(reset)
+        
+    else:
+        ans = input()
+        reset = "yes" if ans != "" and ans.lower().startswith("y") else "no"
+        
+    submit_move(base_url, session_id, token, num, reset)
     
     
 def submit_move(base_url, session_id, token, stones, reset):
@@ -113,20 +92,13 @@ def check_http_response(r):
         exit(-1)
         
     return data
-
-
-# if __name__ == '__main__':
-#     n = int(sys.argv[1])
-#     current_max = 5
-#     print("n: {0}, current_max: {1}".format(n, current_max))
-#     for i in range(1, current_max+1):
-#         print("remove: {0}, stones: {1}, score: {2}".format(i, n-i, calc_winning_moves(n-i, current_max, False)))
+    
 
 if __name__ == '__main__':
-    player_name = None
+    player_name = "Auto"
     init_stones = None
     session_id = None
-    auto_play = False
+    auto_play = True
     base_url = "https://expanding-nim.iltc.app"
     token = None
     
