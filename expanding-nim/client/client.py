@@ -5,6 +5,7 @@ from getopt import getopt
 import requests
 import time
 import random
+from functools import lru_cache
 
 opponent_reset = 4
 winning_base_states = set([1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15])
@@ -44,22 +45,28 @@ def session_status(base_url, session_id, token):
     
 
 def calc_winning_moves(stones, current_max, is_player):
-    res = 0
-    if is_player:
-        if stones in winning_base_states:
-            return 1
-        if stones in losing_base_states:
-            return -1
-        for i in range(1, current_max+1):
-            res += calc_winning_moves(stones-i, current_max, not is_player)
-    else:
-        if stones in winning_base_states:
-            return -1
-        if stones in losing_base_states:
-            return 1
-        for i in range(1, current_max+1):
-            res += calc_winning_moves(stones-i, current_max, not is_player)
-    return res
+
+    @lru_cache(None)
+    def helper(stones, current_max, is_player):
+        res = 0
+        if is_player:
+            if stones in winning_base_states:
+                return 1
+            if stones in losing_base_states:
+                return -1
+            for i in range(1, current_max+1):
+                res += helper(stones-i, current_max if i < current_max else current_max+1, not is_player)
+        else:
+            if stones in winning_base_states:
+                return -1
+            if stones in losing_base_states:
+                return 1
+            for i in range(1, current_max+1):
+                res += helper(stones-i, current_max if i < current_max else current_max+1, not is_player)
+        return res
+    
+    return helper(stones, current_max, is_player)
+
 
 def make_move(base_url, session_id, token, auto_play, status):
     print("Stones Left:", status["stones_left"])
@@ -115,13 +122,14 @@ def check_http_response(r):
     return data
 
 
-# if __name__ == '__main__':
-#     n = int(sys.argv[1])
-#     current_max = 5
-#     print("n: {0}, current_max: {1}".format(n, current_max))
-#     for i in range(1, current_max+1):
-#         print("remove: {0}, stones: {1}, score: {2}".format(i, n-i, calc_winning_moves(n-i, current_max, False)))
+if __name__ == '__main__':
+    n = int(sys.argv[1])
+    current_max = int(sys.argv[2])
+    print("n: {0}, current_max: {1}".format(n, current_max))
+    for i in range(1, current_max+1):
+        print("remove: {0}, stones: {1}, score: {2}".format(i, n-i, calc_winning_moves(n-i, current_max, False)))
 
+"""
 if __name__ == '__main__':
     player_name = None
     init_stones = None
@@ -172,3 +180,4 @@ if __name__ == '__main__':
             time.sleep(3)
         else:
             make_move(base_url, session_id, token, auto_play, status)
+"""
