@@ -142,14 +142,12 @@ def make_move(base_url, session_id, token, auto_play, status):
             break
     
     # check if reasonable number of stones to perform minimax
-    if stones < 120 and accept_max_value < 15:
-        try:
-            ans = find_best_remove(stones, accept_max_value)
-        except:
-            ans = random.randint(1, accept_max_value)
-    
     if ans is None:
-        ans = random.randint(1, accept_max_value)
+        if stones < 120 and accept_max_value < 15:
+            try:
+                ans = find_best_remove(stones, accept_max_value)
+            except:
+                ans = random.randint(1, accept_max_value)
         
     submit_move(base_url, session_id, token, ans, impose_reset)
     
