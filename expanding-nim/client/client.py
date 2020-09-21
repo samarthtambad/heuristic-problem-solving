@@ -67,7 +67,7 @@ def session_status(base_url, session_id, token):
     
 #     return helper(stones, current_max, is_player)
 
-memo = {}
+
 def find_best_remove(stones, current_max):
 
     def minimax(stones, current_max, depth, alpha, beta, maximizingPlayer):
@@ -111,7 +111,7 @@ def find_best_remove(stones, current_max):
             memo[(stones, current_max, maximizingPlayer)] = (min_score, best_remove)
             return min_score, best_remove
     
-    
+    memo = {}
     sc, res = minimax(stones, current_max, 0, float('-inf'), float('inf'), True)
     print("Best Score: {0}, Best Remove: {1}".format(sc, res))
     return res
@@ -207,7 +207,8 @@ def check_http_response(r):
 
 
 if __name__ == '__main__':
-    player_name = None
+    sys.setrecursionlimit(10000)
+    player_name = "remember the name"
     init_stones = None
     session_id = None
     auto_play = False
