@@ -49,24 +49,55 @@ def make_move(base_url, session_id, token, auto_play, status):
     print("Your Time Left: {} s".format(status["time_left"]))
     print("Please enter how much stones you want to remove [1-{}]: ".format(status["accept_max_value"]), end='')
     
-    if auto_play:
-        num = random.randint(1, status["accept_max_value"])
-        print(num)
-        
-    else:
-        num = int(input())
-        
-    print("Do you want to impose reset [yes/No]: ", end='')
     
-    if auto_play:
-        reset = "no"
-        print(reset)
-        
-    else:
-        ans = input()
-        reset = "yes" if ans != "" and ans.lower().startswith("y") else "no"
-        
+    dp_matrix = [[[[[None for k in range(2)] for j in range(5)] for i in range(5)]for a in range(50)]for u in range(1001)]
+    num, reset = next_move(status["stones_left"], status["accept_max_value"], status["reset_left"], 4, 1, dp_matrix)   
+
     submit_move(base_url, session_id, token, num, reset)
+
+def next_move(stones_left, current_max, my_reset_left, opponent_reset_left, game_condition, dp_matrix):
+    stones_pick = 1
+    #print("stones_left", stones_left)
+    if stones_left <= current_max:
+        if game_condition:
+            stones_pick = stones_left
+            dp_matrix[stones_left][current_max][my_reset_left] [opponent_reset_left] [game_condition] = [stones_pick, "no"]
+            return dp_matrix[stones_left][current_max][my_reset_left] [opponent_reset_left] [game_condition]
+        else:
+            dp_matrix[stones_left][current_max][my_reset_left] [opponent_reset_left] [game_condition] = ["Not_Possible", "no"]
+            return dp_matrix[stones_left][current_max][my_reset_left] [opponent_reset_left] [game_condition]
+    
+    elif stones_left == 4 and current_max < 4:
+        if game_condition:
+            dp_matrix[stones_left][current_max][my_reset_left] [opponent_reset_left] [game_condition] = ["Not_Possible", "no"]
+            return dp_matrix[stones_left][current_max][my_reset_left] [opponent_reset_left] [game_condition]
+        else:
+            stones_pick = 3
+            dp_matrix[stones_left][current_max][my_reset_left] [opponent_reset_left] [game_condition] = [stones_pick, "no"]
+            return dp_matrix[stones_left][current_max][my_reset_left] [opponent_reset_left] [game_condition]
+            
+    else:
+        i = current_max
+        while (True and i >= 1):
+            with_reset = None
+            #print("game_condition", game_condition)
+            if not dp_matrix[stones_left - i] [max(i+1, current_max)]  [opponent_reset_left] [my_reset_left] [not game_condition]:
+                dp_matrix[stones_left - i] [max(i+1, current_max)]  [opponent_reset_left] [my_reset_left] [not game_condition] = next_move(stones_left - i, max(i+1, current_max),  opponent_reset_left, my_reset_left, not game_condition, dp_matrix)
+            without_reset =  dp_matrix[stones_left - i] [max(i+1, current_max)]  [opponent_reset_left] [my_reset_left] [not game_condition][0]
+            #print('without_reset', without_reset)
+            if my_reset_left >= 1:
+                if not dp_matrix[stones_left - i] [max(i+1, current_max)]  [opponent_reset_left] [my_reset_left-1] [not game_condition]:
+                    dp_matrix[stones_left - i] [max(i+1, current_max)]  [opponent_reset_left] [my_reset_left-1] [not game_condition] = next_move(stones_left - i, max(i+1, current_max), opponent_reset_left, my_reset_left-1,  not game_condition, dp_matrix)
+                with_reset  =  dp_matrix[stones_left - i] [max(i+1, current_max)]  [opponent_reset_left] [my_reset_left-1] [not game_condition][0]
+                #print('with_reset', with_reset)
+            if  without_reset != "Not_Possible":
+                dp_matrix[stones_left][current_max][my_reset_left] [opponent_reset_left] [game_condition] = [i,  "no"] 
+                return dp_matrix[stones_left][current_max][my_reset_left] [opponent_reset_left] [game_condition]
+            elif with_reset and with_reset != "Not_Possible":
+                dp_matrix[stones_left][current_max][my_reset_left] [opponent_reset_left] [game_condition] = [i, "yes"]
+                return dp_matrix[stones_left][current_max][my_reset_left] [opponent_reset_left] [game_condition]
+            i -=1
+        return "Not Possible"
     
     
 def submit_move(base_url, session_id, token, stones, reset):
