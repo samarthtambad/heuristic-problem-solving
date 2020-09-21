@@ -133,21 +133,30 @@ def make_move(base_url, session_id, token, auto_play, status):
     accept_max_value = status["accept_max_value"]
     ans = None
     impose_reset = "no"
+
+    # win if possible
+    if stones <= accept_max_value:
+        ans = accept_max_value
+        submit_move(base_url, session_id, token, ans, impose_reset)
+        return
     
     # check if opponent can be forced to losing base state
     for i in range(1, accept_max_value+1):
         if (stones - i) in losing_base_states:
             ans = i
             impose_reset = "yes"
-            break
+            submit_move(base_url, session_id, token, ans, impose_reset)
+            return 
     
     # check if reasonable number of stones to perform minimax
     if ans is None:
-        if stones < 120 and accept_max_value < 15:
-            try:
-                ans = find_best_remove(stones, accept_max_value)
-            except:
-                ans = random.randint(1, accept_max_value)
+        try:
+            ans = find_best_remove(stones, accept_max_value)
+        except:
+            ans = random.randint(1, accept_max_value)
+    
+    if ans is None:
+        ans = random.randint(1, accept_max_value)
         
     submit_move(base_url, session_id, token, ans, impose_reset)
     
