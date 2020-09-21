@@ -45,28 +45,27 @@ def session_status(base_url, session_id, token):
     return data
     
 
-def calc_winning_moves(stones, current_max, is_player):
-
-    @lru_cache(None)
-    def helper(stones, current_max, is_player):
-        res = 0
-        if is_player:
-            if stones in winning_base_states:
-                return 1
-            if stones in losing_base_states:
-                return -1
-            for i in range(1, current_max+1):
-                res += helper(stones-i, current_max if i < current_max else current_max+1, not is_player)
-        else:
-            if stones in winning_base_states:
-                return -1
-            if stones in losing_base_states:
-                return 1
-            for i in range(1, current_max+1):
-                res += helper(stones-i, current_max if i < current_max else current_max+1, not is_player)
-        return res
+# def calc_winning_moves(stones, current_max, is_player):
+#     @lru_cache(None)
+#     def helper(stones, current_max, is_player):
+#         res = 0
+#         if is_player:
+#             if stones in winning_base_states:
+#                 return 1
+#             if stones in losing_base_states:
+#                 return -1
+#             for i in range(1, current_max+1):
+#                 res += helper(stones-i, current_max if i < current_max else current_max+1, not is_player)
+#         else:
+#             if stones in winning_base_states:
+#                 return -1
+#             if stones in losing_base_states:
+#                 return 1
+#             for i in range(1, current_max+1):
+#                 res += helper(stones-i, current_max if i < current_max else current_max+1, not is_player)
+#         return res
     
-    return helper(stones, current_max, is_player)
+#     return helper(stones, current_max, is_player)
 
 memo = {}
 def find_best_remove(stones, current_max):
