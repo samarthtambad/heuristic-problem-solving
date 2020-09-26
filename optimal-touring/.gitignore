@@ -1,0 +1,6 @@
+# ignore generated text files
+*.txt
+
+# ignore compiled files for solvers
+solver
+*.class
