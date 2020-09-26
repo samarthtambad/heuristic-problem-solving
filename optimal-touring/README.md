@@ -30,6 +30,11 @@ Note that a pure greedy strategy wouldn't be so good. Such a strategy might have
 
 Your output should simply give a sequence of sites in the order of visit per day, one line per day.
 
+## Important
+1. What time duration should I start the visit at a site
+2. Given a time, which sites could be visited at that time?
+
+
 
 ## Approaches
 1. ```Minimum Spanning Tree (MST)``` - traversing the sites only using the path along the MST is a good starting point but certainly won't be a winning solution.
