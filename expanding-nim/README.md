@@ -22,17 +22,16 @@ Max Number of stones removable =
 ```
 
 ## Approaches
-```
 The following variables defines the current state of the game. 
-state: current_num, current_max, cur_player, player1_resets, player2_resets
-
-Questions:
-1. Are there states that are guaranteed to cause loss like in the classic nim game?
-2. At a particular state, is it deterministic whether the 
+state: 
 ```
+current_num, current_max, cur_player, player1_resets, player2_resets
+```
+1. ```Random move``` - This will never win but is a good starting point to interact with, understand and get comfortable with the platform.
+2. ```Minimax``` - this approach is based on trying to force the opponent into one of the losing states (4, 8, 12, 16) or yourself into a winning state (all other numbers upto 16). The problem is that since minimax is a recursive algorithm, this easily exceeds the maximum recursion depth.
+3. ```Dynamic Programming``` - Bottom-up DP is the best possible approach for this problem.
 
 ## References
-1. https://www.ics.uci.edu/~goodrich/teach/cs260P/notes/GameStrategies.pdf
-
-
-## Example game
+1. https://en.wikipedia.org/wiki/Minimax
+2. https://www.ics.uci.edu/~goodrich/teach/cs260P/notes/GameStrategies.pdf
+3. https://codeforces.com/blog/entry/66040

@@ -5,7 +5,12 @@ from getopt import getopt
 import requests
 import time
 import random
+# from functools import lru_cache
+# import timeit
 
+opponent_reset = 4
+winning_base_states = set([1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15])
+losing_base_states = set([4, 8, 12, 16])
 
 def create_session(base_url, player_name, init_stones):
     print("\nCreating a new session ... ", end='')
@@ -40,6 +45,78 @@ def session_status(base_url, session_id, token):
     return data
     
 
+# def calc_winning_moves(stones, current_max, is_player):
+#     @lru_cache(None)
+#     def helper(stones, current_max, is_player):
+#         res = 0
+#         if is_player:
+#             if stones in winning_base_states:
+#                 return 1
+#             if stones in losing_base_states:
+#                 return -1
+#             for i in range(1, current_max+1):
+#                 res += helper(stones-i, current_max if i < current_max else current_max+1, not is_player)
+#         else:
+#             if stones in winning_base_states:
+#                 return -1
+#             if stones in losing_base_states:
+#                 return 1
+#             for i in range(1, current_max+1):
+#                 res += helper(stones-i, current_max if i < current_max else current_max+1, not is_player)
+#         return res
+    
+#     return helper(stones, current_max, is_player)
+
+
+def find_best_remove(stones, current_max):
+
+    def minimax(stones, current_max, depth, alpha, beta, maximizingPlayer):
+
+        if (stones, current_max, maximizingPlayer) in memo:
+            a, b = memo[(stones, current_max, maximizingPlayer)]
+            return a, b
+
+        if (maximizingPlayer and stones in winning_base_states) or (not maximizingPlayer and stones in losing_base_states):
+            memo[(stones, current_max, maximizingPlayer)] = (1001 - depth, None)
+            return 1001 - depth, None
+        if (not maximizingPlayer and stones in winning_base_states) or (maximizingPlayer and stones in losing_base_states):
+            memo[(stones, current_max, maximizingPlayer)] = -(1001 - depth), None
+            return -(1001 - depth), None
+
+        if maximizingPlayer:
+            max_score = float('-inf')
+            best_remove = None
+            for i in reversed(range(1, current_max+1)):
+                score, remove = minimax(stones-i, current_max if i < current_max else current_max+1, depth+1, alpha, beta, False)
+                if score > max_score:
+                    max_score = score
+                    best_remove = i
+                # update the upper bound
+                # alpha = max(alpha, score)
+                # if alpha >= beta:
+                #     break
+            memo[(stones, current_max, maximizingPlayer)] = (max_score, best_remove)
+            return max_score, best_remove
+        else:
+            min_score = float('inf')
+            best_remove = None
+            for i in reversed(range(1, current_max+1)):
+                score, remove = minimax(stones-i, current_max if i < current_max else current_max+1, depth+1, alpha, beta, True)
+                if score < min_score:
+                    min_score = score
+                    best_remove = i
+                # beta = min(beta, score)
+                # if alpha >= beta:
+                #     break
+            memo[(stones, current_max, maximizingPlayer)] = (min_score, best_remove)
+            return min_score, best_remove
+    
+    memo = {}
+    sc, res = minimax(stones, current_max, 0, float('-inf'), float('inf'), True)
+    print("Best Score: {0}, Best Remove: {1}".format(sc, res))
+    return res
+
+
 def make_move(base_url, session_id, token, auto_play, status):
     print("Stones Left:", status["stones_left"])
     print("Reset Imposed:", status["reset"])
@@ -48,25 +125,39 @@ def make_move(base_url, session_id, token, auto_play, status):
     print("Your Start Time:", status["start_time"])
     print("Your Time Left: {} s".format(status["time_left"]))
     print("Please enter how much stones you want to remove [1-{}]: ".format(status["accept_max_value"]), end='')
+
+    stones = status["stones_left"]
+    # reset = True if status["reset"] == "yes" else False
+    # current_max = status["current_max"]
+    accept_max_value = status["accept_max_value"]
+    ans = None
+    impose_reset = "no"
+
+    # win if possible
+    if stones <= accept_max_value:
+        ans = accept_max_value
+        submit_move(base_url, session_id, token, ans, impose_reset)
+        return
     
-    if auto_play:
-        num = random.randint(1, status["accept_max_value"])
-        print(num)
-        
-    else:
-        num = int(input())
-        
-    print("Do you want to impose reset [yes/No]: ", end='')
+    # check if opponent can be forced to losing base state
+    for i in range(1, accept_max_value+1):
+        if (stones - i) in losing_base_states:
+            ans = i
+            impose_reset = "yes"
+            submit_move(base_url, session_id, token, ans, impose_reset)
+            return 
     
-    if auto_play:
-        reset = "no"
-        print(reset)
+    # check if reasonable number of stones to perform minimax
+    if ans is None:
+        try:
+            ans = find_best_remove(stones, accept_max_value)
+        except:
+            ans = random.randint(1, accept_max_value)
+    
+    if ans is None:
+        ans = random.randint(1, accept_max_value)
         
-    else:
-        ans = input()
-        reset = "yes" if ans != "" and ans.lower().startswith("y") else "no"
-        
-    submit_move(base_url, session_id, token, num, reset)
+    submit_move(base_url, session_id, token, ans, impose_reset)
     
     
 def submit_move(base_url, session_id, token, stones, reset):
@@ -92,10 +183,32 @@ def check_http_response(r):
         exit(-1)
         
     return data
-    
+
+
+# def wrapper(func, *args, **kwargs):
+#     def wrapped():
+#         return func(*args, **kwargs)
+#     return wrapped
+
+
+# if __name__ == '__main__':
+#     stones = int(sys.argv[1])
+#     current_max = int(sys.argv[2])
+#     print("stones: {0}, current_max: {1}".format(stones, current_max))
+#     # for i in range(1, current_max+1):
+#     #     print("remove: {0}, stones: {1}, score: {2}".format(i, stones-i, calc_winning_moves(stones-i, current_max, False)))
+#     # wrapped = wrapper(find_best_remove, stones, current_max)
+#     # try:
+#     #     print("Time:", timeit.timeit(wrapped, number=100), "s")
+#     # except:
+#     #     print(random.randint(1, current_max))
+#     find_best_remove(stones, current_max)
+#     # print(memo)
+
 
 if __name__ == '__main__':
-    player_name = None
+    sys.setrecursionlimit(10000)
+    player_name = "remember the name"
     init_stones = None
     session_id = None
     auto_play = False
