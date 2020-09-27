@@ -5,6 +5,9 @@ import sys
 import random
 from itertools import permutations
 from collections import defaultdict
+from timeit import default_timer as timer
+
+timer_start = timer()
 
 class DisjointSet:
     def __init__(self, n):
@@ -166,15 +169,46 @@ class OptimalTouring:
       dfs(start)
       return path
 
+    def swap_2opt(self, route, i, j):
+      # print(i, j, route)
+      # print(route[:i] + route[i:j+1][::-1] + route[j+1:])
+      return route[:i] + route[i:j+1][::-1] + route[j+1:]
+    
+    def two_opt(self, route):
+      best, max_val, res = route, 0, None
+      improved = True
+      while improved:
+        improved = False
+        for i in range(len(route) - 2):
+          if (timer() - timer_start) > 1.9: break
+          for j in range(i + 1, len(route)):
+            if (timer() - timer_start) > 1.9: break
+            if j - i == 1: continue
+            new_route = self.swap_2opt(route, i, j)
+            # print(new_route)
+            ans, val = self.get_valid_tour(new_route)
+            if val > max_val:
+              best = new_route
+              max_val = val
+              res = ans
+              improved = True
+        
+        route = best
+      
+      return res
+
     def generate_mst_tour(self):
-      res, max_val = None, 0
+      best_path, res, max_val = None, None, 0
       for start in range(1, self.num_sites + 1):
         path = self.get_mst_path(start)
         ans, val = self.get_valid_tour(path)
         if val > max_val:
+          best_path = path
           max_val = val
           res = ans
-      return res
+
+      # return res
+      return self.two_opt(best_path)
 
     def generate_tour(self):
       sites = [site for site in range(1, self.num_sites + 1)]
@@ -196,6 +230,7 @@ class OptimalTouring:
 # Also, you may want to modify the following function. It does nothing but
 # print #day lines, each of which contains #site numbers: 1 2 3 ... #site.
 def main():
+  start = timer()
   optimal_touring = OptimalTouring()
   # optimal_touring.print_data()
   optimal_touring.generate_mst()
@@ -215,6 +250,14 @@ def main():
 
   for visit_on_day in optimal_touring.generate_mst_tour():
     print(*visit_on_day)
+  
+  end = timer()
+  print("Time: {0} s".format(end - timer_start), file=sys.stderr)
+
+  # 2 opt output -> time 7s, score 1196.4
+  # print("36 43 83 81")
+  # print("59 95 28 49 100")
+  # print("68 55 20 32 12")
 
 if __name__ == '__main__':
   main()
