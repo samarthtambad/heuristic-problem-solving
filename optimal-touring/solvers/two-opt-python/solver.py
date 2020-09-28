@@ -170,8 +170,6 @@ class OptimalTouring:
       return path
 
     def swap_2opt(self, route, i, j):
-      # print(i, j, route)
-      # print(route[:i] + route[i:j+1][::-1] + route[j+1:])
       return route[:i] + route[i:j+1][::-1] + route[j+1:]
     
     def two_opt(self, route):
@@ -179,13 +177,13 @@ class OptimalTouring:
       improved = True
       while improved:
         improved = False
-        for i in range(len(route) - 2):
+        for i in range(len(route)):
           if (timer() - timer_start) > 1.9: break
           for j in range(i + 1, len(route)):
             if (timer() - timer_start) > 1.9: break
-            if j - i == 1: continue
+            if j - i == 0: continue
+            # if j - i == 1: continue
             new_route = self.swap_2opt(route, i, j)
-            # print(new_route)
             ans, val = self.get_valid_tour(new_route)
             if val > max_val:
               best = new_route
@@ -253,11 +251,6 @@ def main():
   
   end = timer()
   print("Time: {0} s".format(end - timer_start), file=sys.stderr)
-
-  # 2 opt output -> time 7s, score 1196.4
-  # print("36 43 83 81")
-  # print("59 95 28 49 100")
-  # print("68 55 20 32 12")
 
 if __name__ == '__main__':
   main()
