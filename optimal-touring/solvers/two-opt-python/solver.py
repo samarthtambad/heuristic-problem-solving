@@ -228,7 +228,7 @@ class OptimalTouring:
 # Also, you may want to modify the following function. It does nothing but
 # print #day lines, each of which contains #site numbers: 1 2 3 ... #site.
 def main():
-  start = timer()
+  timer_start = timer()
   optimal_touring = OptimalTouring()
   # optimal_touring.print_data()
   optimal_touring.generate_mst()
