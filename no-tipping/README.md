@@ -10,5 +10,5 @@ As the game proceeds, the net torque around each support is calculated and displ
 1. 
 
 ## References
-1. Architecture - https://github.com/Heuristic-Problem-Solving/NoTippingGameArchitecture
+1. [Architecture](https://github.com/Heuristic-Problem-Solving/NoTippingGameArchitecture)
 2. 
