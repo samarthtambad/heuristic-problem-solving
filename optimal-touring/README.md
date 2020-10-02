@@ -37,7 +37,9 @@ Your output should simply give a sequence of sites in the order of visit per day
 
 
 ## Approaches
-1. ```Minimum Spanning Tree (MST)``` - traversing the sites only using the path along the MST is a good starting point but certainly won't be a winning solution.
-2. 
+1. ```Minimum Spanning Tree (MST) + 2OPT``` - using MST to generate an initial tour. Keep swapping two edges as long as it improves the result.
+2. ```Clustering``` - approaches using clustering performed better.
+3. ```Simulated annealing + DP``` -  this strategy won the contest.
 
 ## References
+1. http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.104.9895&rep=rep1&type=pdf#:~:text=The%20traveling%20salesman%20problem%20
