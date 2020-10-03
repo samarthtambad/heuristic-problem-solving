@@ -17,14 +17,14 @@ for idx, val in enumerate(sys.argv):
         first = 1
     if(val == "-n"):
         name = sys.argv[idx + 1]
-s.sendall('{} {}'.format(name, first))
+s.sendall('{} {}'.format(name, first).encode('utf-8'))
 
 
-k = int(s.recv(1024))
+k = int(s.recv(1024).decode('utf-8'))
 print("Number of Weights is: " + str(k))
 
 for i in range(1, k):
-    myWeight[i] = 1;
+    myWeight[i] = 1
 
 def check_balance(board):
     left_torque = 0
@@ -48,7 +48,8 @@ def find_place_position(key, board):
     return -100
 
 while(1):
-    data = s.recv(1024)
+    data = s.recv(1024).decode('utf-8')
+    print(data)
     while not data:
         continue
     data = [int(data.split(' ')[i]) for i in range(0, 63)]
@@ -60,7 +61,7 @@ while(1):
 
     if data[0] == 0:
         allPosition = []
-        for key,value in myWeight.iteritems():
+        for key,value in myWeight.items():
             if value == 1:
                 position = find_place_position(key, board)
                 if position != -100:
@@ -74,7 +75,7 @@ while(1):
             choice = random.choice(allPosition)
         myWeight[choice[0]] = 0
         print("Added: " + str(choice))
-        s.sendall('{} {}'.format(choice[0], choice[1]))
+        s.sendall('{} {}'.format(choice[0], choice[1]).encode('utf-8'))
 
     else:
         allPossiblePosition = []
@@ -89,9 +90,9 @@ while(1):
             choice = (1)
         else:
             choice = random.choice(allPossiblePosition)
-            random.jumpahead(1);
+            random.jumpahead(1)
         print("Removed:" + str(choice))
-        s.sendall('{}'.format(choice))
+        s.sendall('{}'.format(choice).encode('utf-8'))
 
 
 s.close()
