@@ -10,7 +10,6 @@
 				}
 			</style>
 			    
-			 <meta http-equiv="refresh" content="1; URL=http://localhost:8000/index.html">
 		</head>
 
 		<body onload="startGame()">
@@ -26,9 +25,9 @@
 				name: 'test'
 			};
 
-			var leftTorque = ;
-			var rightTorque = ;
-			var turn = 1;
+			var leftTorque = 30;
+			var rightTorque = -182;
+			var turn = 2;
 			var maxWeight = 10;
 			var boardState;
 			var boardColor;
@@ -51,6 +50,8 @@
 					drawUnusedWeights(this.canvas.width, this.canvas.height);
 
 
+					drawWin(this.canvas.width, this.canvas.height);
+
 
 				},
 			}
@@ -64,6 +65,13 @@
 				boardState.push(0);
 				boardState.push(0);
 				boardState.push(0);
+				boardState.push(2);
+				boardState.push(3);
+				boardState.push(4);
+				boardState.push(5);
+				boardState.push(6);
+				boardState.push(7);
+				boardState.push(8);
 				boardState.push(0);
 				boardState.push(0);
 				boardState.push(0);
@@ -72,54 +80,59 @@
 				boardState.push(0);
 				boardState.push(0);
 				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
+				boardState.push(9);
+				boardState.push(1);
 				boardState.push(0);
 				boardState.push(0);
 				boardState.push(0);
 				boardState.push(0);
 				boardState.push(3);
+				boardState.push(10);
+				boardState.push(0);
+				boardState.push(0);
+				boardState.push(0);
+				boardState.push(0);
+				boardState.push(9);
+				boardState.push(0);
+				boardState.push(0);
+				boardState.push(8);
+				boardState.push(0);
+				boardState.push(0);
+				boardState.push(0);
+				boardState.push(7);
+				boardState.push(0);
+				boardState.push(0);
+				boardState.push(0);
+				boardState.push(0);
+				boardState.push(6);
+				boardState.push(0);
+				boardState.push(0);
+				boardState.push(0);
+				boardState.push(0);
+				boardState.push(0);
+				boardState.push(5);
 				boardState.push(0);
 				boardState.push(0);
 				boardState.push(0);
 				boardState.push(0);
 				boardState.push(0);
 				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
-				boardState.push(0);
+				boardState.push(1);
+				boardState.push(2);
+				boardState.push(3);
+				boardState.push(4);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(2);
+				boardColor.push(2);
+				boardColor.push(2);
+				boardColor.push(2);
+				boardColor.push(2);
+				boardColor.push(2);
+				boardColor.push(2);
 				boardColor.push(0);
 				boardColor.push(0);
 				boardColor.push(0);
@@ -128,59 +141,47 @@
 				boardColor.push(0);
 				boardColor.push(0);
 				boardColor.push(0);
+				boardColor.push(2);
+				boardColor.push(2);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(1);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(1);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(1);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(1);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(1);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(0);
+				boardColor.push(1);
 				boardColor.push(0);
 				boardColor.push(0);
 				boardColor.push(0);
 				boardColor.push(0);
 				boardColor.push(0);
 				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
-				boardColor.push(0);
+				boardColor.push(1);
+				boardColor.push(1);
+				boardColor.push(1);
+				boardColor.push(1);
 
 
 			    ctx = myGameArea.context;

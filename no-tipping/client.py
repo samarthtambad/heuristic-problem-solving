@@ -64,7 +64,7 @@ class NoTippingClient:
                 if new_board[i] != self.board[i]:
                     self.opponent_weights.remove(new_board[i])
                     break
-        print("opponent_weights", self.opponent_weights)
+        # print("opponent_weights", self.opponent_weights)
         self.stage = data[0]
         self.board = data[1:-1]
         self.is_over = False if data[-1] == 0 else True
@@ -72,26 +72,30 @@ class NoTippingClient:
         return True
 
     def move(self):
-        if self.stage == 0: # add stage
-            self.add()
-        else:               # remove stage
-            self.remove()
+        if not self.over():
+            if self.stage == 0: # add stage
+                self.add()
+            else:               # remove stage
+                self.remove()
     
     def add(self):
-        weight, pos = self.minimax_strategy() # self.add_random()
-        self.weights.remove(weight)
+        print(self.weights, self.opponent_weights, self.stage)
+        weight, pos = self.add_greedy() # self.add_random()
+        if weight in self.weights:
+            self.weights.remove(weight)
         self.board[pos + 30] = weight
         print("Added {0} kg at position {1}".format(weight, pos))
         self.srv.sendall("{0} {1}".format(weight, pos).encode('utf-8'))
 
     def remove(self):
-        pos = self.remove_random()
+        pos = self.minimax_strategy_remove() # self.remove_random()
         self.board[pos + 30] = 0
         print("Removed weight at position {0}".format(pos))
         self.srv.sendall("{0}".format(pos).encode('utf-8'))
 
     def add_random(self):
         board = copy.deepcopy(self.board)
+        
         for w in self.weights:
             positions = []
             for pos in self.get_valid_positions(w, board):
@@ -104,215 +108,155 @@ class NoTippingClient:
         print("No valid position found")
         return 1, -1
 
-    # def add_backtracking(self):
+    def add_greedy(self):
+        my_weights = copy.deepcopy(self.weights)
+        board = copy.deepcopy(self.board)
+        options = self.get_add_options(my_weights, board)
+        options.sort(key=lambda x: (x[0], abs(x[1])))
 
-    #     def backtrack(my_weights, opponent_weights, board, player):
-    #         print("backtrack", my_weights, opponent_weights, board, player)
-
-    #         tup = tuple(tuple(my_weights) + tuple(opponent_weights) + tuple(board) + tuple([1 if player else 0]))
-    #         if tup in memo:
-    #             return memo[tup]
-
-    #         if player:
-    #             if len(my_weights) > 0: # add stage
-    #                 options = []
-    #                 for w in my_weights:
-    #                     for pos in self.get_valid_positions(w, board):
-    #                         options.append((w, pos))
-
-    #                 # base case
-    #                 if len(options) == 0: return 0
-                    
-    #                 count = 0
-    #                 for w, pos in options:
-    #                     idx = my_weights.index(w)
-    #                     my_weights.pop(idx)
-    #                     board[pos + 30] = w
-    #                     count += backtrack(my_weights, opponent_weights, board, not player)
-    #                     my_weights.insert(idx, w)
-    #                     board[pos + 30] = 0
-                    
-    #                 memo[tup] = count
-    #                 return count
-
-    #             else:   # remove stage
-    #                 options = []
-    #                 for pos in self.get_valid_remove_positions(board):
-    #                     options.append(pos)
-                    
-    #                 # base case
-    #                 if len(options) == 0: return 0
-
-    #                 count = 0
-    #                 for pos in options:
-    #                     w = board[pos + 30]
-    #                     board[pos + 30] = 0
-    #                     count += backtrack(my_weights, opponent_weights, board, not player)
-    #                     board[pos + 30] = w
-                    
-    #                 memo[tup] = count
-    #                 return count
-    #         else:
-    #             if len(opponent_weights) > 0: # add stage
-    #                 options = []
-    #                 for w in opponent_weights:
-    #                     for pos in self.get_valid_positions(w, board):
-    #                         options.append((w, pos))
-
-    #                 # base case
-    #                 if len(options) == 0: return 1
-                    
-    #                 count = 0
-    #                 for w, pos in options:
-    #                     idx = opponent_weights.index(w)
-    #                     opponent_weights.pop(idx)
-    #                     board[pos + 30] = w
-    #                     count += backtrack(opponent_weights, opponent_weights, board, not player)
-    #                     opponent_weights.insert(idx, w)
-    #                     board[pos + 30] = 0
-                    
-    #                 memo[tup] = count
-    #                 return count
-
-    #             else:   # remove stage
-    #                 options = []
-    #                 for pos in self.get_valid_remove_positions(board):
-    #                     options.append(pos)
-                    
-    #                 # base case
-    #                 if len(options) == 0: return 1
-
-    #                 count = 0
-    #                 for pos in options:
-    #                     w = board[pos + 30]
-    #                     board[pos + 30] = 0
-    #                     count += backtrack(my_weights, opponent_weights, board, not player)
-    #                     board[pos + 30] = w
-                    
-    #                 memo[tup] = count
-    #                 return count
-
-    #     my_weights = copy.deepcopy(self.weights)
-    #     opponent_weights = copy.deepcopy(self.opponent_weights)
-    #     board = copy.deepcopy(self.board)
-
-    #     options = []
-    #     for w in my_weights:
-    #         for pos in self.get_valid_positions(w, board):
-    #             options.append((w, pos))
-
-    #     print(options)
-
-    #     memo = {}
-
-    #     max_count, res = 0, None
-    #     for w, pos in options:
-    #         idx = my_weights.index(w)
-    #         my_weights.pop(idx)
-    #         board[pos + 30] = w
-    #         count = backtrack(my_weights, opponent_weights, board, False)
-    #         break
-    #         # print(w, pos, count)
-    #         if count > max_count:
-    #             max_count = count
-    #             res = (w, pos)
-    #         my_weights.insert(idx, w)
-    #         board[pos + 30] = 0
+        if len(options) > 0:
+            return options[-1]
         
-    #     return res
+        print("No valid weight and position found to add")
+        return 1, -1
 
-    def minimax_strategy(self):
+
+    def minimax_strategy_add(self):
 
         def minimax(my_weights, opponent_weights, board, maximizingPlayer):
 
+            tup = tuple(tuple(my_weights) + tuple(opponent_weights) + tuple(board) + tuple([1 if maximizingPlayer else 0]))
+            # print(tup)
+            if tup in memo:
+                return memo[tup]
+
+            # print(my_weights, opponent_weights, board, maximizingPlayer)
+
+            # no more weights
+            if maximizingPlayer and len(my_weights) == 0:
+                return 1, (None, None)
+            if not maximizingPlayer and len(opponent_weights) == 0:
+                return 0, (None, None)
+
             if maximizingPlayer:
+                add_options = self.get_add_options(my_weights, board)
+
+                if len(my_weights) > 0 and len(add_options) == 0:
+                    return -1, (None, None)
+
+                # choose best move
+                max_score, res = float('-inf'), None
+                for w, pos in add_options:
+                    idx = my_weights.index(w)
+                    my_weights.pop(idx)
+                    board[pos + 30] = w
+                    score, _ = minimax(my_weights, opponent_weights, board, False)
+                    if score > max_score:
+                        max_score = score
+                        res = (w, pos)
+                    my_weights.insert(idx, w)
+                    board[pos + 30] = 0
                 
-                if len(my_weights) > 0: # add stage
-                    add_options = self.get_add_options(board)
-
-                    # nothing to add
-                    if len(add_options) == 0:
-                        return -1, None
-
-                    # choose best move
-                    max_score, res = float('-inf'), None
-                    for w, pos in add_options:
-                        idx = my_weights.index(w)
-                        my_weights.pop(idx)
-                        board[pos + 30] = w
-                        score, ans = minimax(my_weights, opponent_weights, board, False)
-                        if score > max_score:
-                            max_score = score
-                            res = (w, pos)
-                        my_weights.insert(idx, w)
-                        board[pos + 30] = 0
-                    return max_score, res
-                
-                else:   # remove stage
-                    remove_options = self.get_remove_options(board)
-
-                    # nothing to remove
-                    if len(remove_options) == 0:
-                        return -1, None
-
-                    # choose best move
-                    max_score, res = float('-inf'), None
-                    for pos in remove_options:
-                        w = board[pos + 30]
-                        board[pos + 30] = 0
-                        score, ans = minimax(my_weights, opponent_weights, board, False)
-                        if score > max_score:
-                            max_score = score
-                            res = (None, pos)
-                        board[pos + 30] = w
-                    return max_score, res
+                memo[tup] = max_score, res
+                return max_score, res
 
             else:
-                if len(opponent_weights) > 0: # add stage
-                    add_options = self.get_add_options(board)
 
-                    # nothing to add
-                    if len(add_options) == 0:
-                        return -1, None
+                add_options = self.get_add_options(opponent_weights, board)
 
-                    # choose best move
-                    min_score, res = float('inf'), None
-                    for w, pos in add_options:
-                        idx = opponent_weights.index(w)
-                        opponent_weights.pop(idx)
-                        board[pos + 30] = w
-                        score, ans = minimax(my_weights, opponent_weights, board, True)
-                        if score < min_score:
-                            min_score = score
-                            res = (w, pos)
-                        opponent_weights.insert(idx, w)
-                        board[pos + 30] = 0
-                    return min_score, res
-                
-                else:   # remove stage
-                    remove_options = self.get_remove_options(board)
+                if len(opponent_weights) > 0 and len(add_options) == 0:
+                    return 1, (None, None)
 
-                    # nothing to remove
-                    if len(remove_options) == 0:
-                        return -1, None
+                # choose best move
+                min_score, res = float('inf'), None
+                for w, pos in add_options:
+                    idx = opponent_weights.index(w)
+                    opponent_weights.pop(idx)
+                    board[pos + 30] = w
+                    score, _ = minimax(my_weights, opponent_weights, board, True)
+                    if score < min_score:
+                        min_score = score
+                        res = (w, pos)
+                    opponent_weights.insert(idx, w)
+                    board[pos + 30] = 0
 
-                    # choose best move
-                    min_score, res = float('inf'), None
-                    for pos in remove_options:
-                        w = board[pos + 30]
-                        board[pos + 30] = 0
-                        score, ans = minimax(my_weights, opponent_weights, board, True)
-                        if score < min_score:
-                            min_score = score
-                            res = (None, pos)
-                        board[pos + 30] = w
-                    return min_score, res
+                memo[tup] = min_score, res
+                return min_score, res
 
+        memo = {}
         my_weights = copy.deepcopy(self.weights)
         opponent_weights = copy.deepcopy(self.opponent_weights)
         board = copy.deepcopy(self.board)
 
-        return minimax(my_weights, opponent_weights, board, True)
+        # print(my_weights, opponent_weights, board)
+
+        _, res = minimax(my_weights, opponent_weights, board, True)
+        # print(score, res)
+        return res
+
+
+    def minimax_strategy_remove(self):
+
+        def minimax(board, maximizingPlayer):
+
+            tup = tuple(tuple(board) + tuple([1 if maximizingPlayer else 0]))
+            if tup in memo:
+                return memo[tup]
+
+            if maximizingPlayer:
+                
+                remove_options = self.get_remove_options(board)
+
+                # nothing to remove
+                if len(remove_options) == 0:
+                    memo[tup] = (-1, None)
+                    return -1, None
+
+                # choose best move
+                max_score, res = float('-inf'), None
+                for pos in remove_options:
+                    w = board[pos + 30]
+                    board[pos + 30] = 0
+                    score, _ = minimax(board, False)
+                    if score > max_score:
+                        max_score = score
+                        res = pos
+                    board[pos + 30] = w
+                
+                memo[tup] = (max_score, res)
+                return max_score, res
+
+            else:
+
+                remove_options = self.get_remove_options(board)
+
+                # nothing to remove
+                if len(remove_options) == 0:
+                    memo[tup] = (-1, None)
+                    return -1, None
+
+                # choose best move
+                min_score, res = float('inf'), None
+                for pos in remove_options:
+                    w = board[pos + 30]
+                    board[pos + 30] = 0
+                    score, _ = minimax(board, True)
+                    if score < min_score:
+                        min_score = score
+                        res = pos
+                    board[pos + 30] = w
+
+                memo[tup] = (min_score, res)
+                return min_score, res
+
+        memo = {}
+        board = copy.deepcopy(self.board)
+        print(board)
+
+        score, res = minimax(board, True)
+        print(score, res)
+
+        return res if res else -1
 
     
     def remove_random(self):
@@ -346,10 +290,9 @@ class NoTippingClient:
                     yield (i - 30)
                 board[i] = 0
     
-    def get_add_options(self, board):
-        my_weights = copy.deepcopy(self.weights)
+    def get_add_options(self, weights, board):
         options = []
-        for w in my_weights:
+        for w in weights:
             for pos in self.get_valid_positions(w, board):
                 options.append((w, pos))
         return options
