@@ -18,7 +18,11 @@ Here is the [data from 2007 having 300 people and five hospitals (having fixed h
 Here is the [data from 2015 having 300 people and five hospitals](https://cs.nyu.edu/courses/fall20/CSCI-GA.2965-001/amb.2015). [Here is a validator written by Yusuke Shinyama](https://cs.nyu.edu/courses/fall20/CSCI-GA.2965-001/validator.tar.gz). This tar.gz file includes README, sample_data, sample_result, and sample_wrong_result (which causes a validation error) files.
 
 ## Approaches
-1. 
+1. Clustering + route construction
+2. Simulated annealing
+3. Genetic Algorithms
 
 ## References
-1. 
+1. [https://github.com/graphhopper/jsprit](https://github.com/graphhopper/jsprit)
+2. [http://www.bernabe.dorronsoro.es/vrp/](http://www.bernabe.dorronsoro.es/vrp/)
+3. 
