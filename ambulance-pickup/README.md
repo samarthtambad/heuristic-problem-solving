@@ -21,8 +21,11 @@ Here is the [data from 2015 having 300 people and five hospitals](https://cs.nyu
 1. Clustering + route construction
 2. Simulated annealing
 3. Genetic Algorithms
+4. Large Neighbourhood Search
+5. Constraint Programming
 
 ## References
-1. [https://github.com/graphhopper/jsprit](https://github.com/graphhopper/jsprit)
-2. [http://www.bernabe.dorronsoro.es/vrp/](http://www.bernabe.dorronsoro.es/vrp/)
-3. 
+1. [Architecture](https://github.com/nspektor/Ambulance-Pickup-Architecture)
+2. [https://github.com/graphhopper/jsprit](https://github.com/graphhopper/jsprit)
+3. [http://www.bernabe.dorronsoro.es/vrp/](http://www.bernabe.dorronsoro.es/vrp/)
+4. [Vehicle Routing Problem Lecture](https://www.youtube.com/watch?v=A1wsIFDKqBk)
