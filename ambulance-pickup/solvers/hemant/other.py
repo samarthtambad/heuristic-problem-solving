@@ -5,23 +5,26 @@
 
 import pandas as pd
 
-df = pd.read_csv("/Users/hemantsingh/Downloads/heuristic-problem-solving/ambulance-pickup/solvers/hemant/ambulance1.csv")
+#df = pd.read_csv("/Users/hemantsingh/Downloads/heuristic-problem-solving/ambulance-pickup/solvers/hemant/ambulance1.csv")
 #df = pd.DataFrame(matrixA, columns= ["index", "x", "y", "time_to_live", "time_to_hospital"])
 
 def routing_one_ambulance(df):
     df_new = df.sort_values(["time_to_live"]).reset_index()[["index", "x", "y", "time_to_live", "time_to_hospital"]]
     print(df_new)
     patients = []
+    total_patients_picked = 0
     df_rec, current_time, patient_4 = routing_for_4(df_new, 0)
     patients.append(patient_4)
-    
+    total_patients_picked = total_patients_picked + len(patient_4)
+
     while(len(df_rec)) > 0 :
         df_rec, current_time, patient_4 = routing_for_4(df_rec ,current_time)
         if len(patient_4) == 0 : 
             break
         patients.append(patient_4)
+        total_patients_picked = total_patients_picked + len(patient_4)
     #print("patiensts....................", patients )
-    return patients
+    return total_patients_picked, patients
         
 
 def routing_for_4(df, current_time):
@@ -113,8 +116,7 @@ def routing_for_4(df, current_time):
         return df_initial, current_time + time_to_hospital_final, patients
 
         
-        
-print(routing_one_ambulance(df))
+
         
 
 
