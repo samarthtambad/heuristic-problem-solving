@@ -193,6 +193,19 @@ class AmbulancePickup:
         dfs(start)
         return path
 
+    def generate_routes_greedy(self):
+        load_time_per_person = 1
+        unload_time = 1
+        result = []
+
+        for hospital_idx, patients in enumerate(self.cluster):
+            routes = self.find_routes(patients, self.num_ambulance_at_hospital[hospital_idx])
+            print(routes)
+
+    def find_routes(self, patients, ambulances):
+        
+
+
     def find_routes(self):
         """
         patients - array of patients indexes
@@ -206,7 +219,6 @@ class AmbulancePickup:
         """
         load_time_per_person = 1
         unload_time = 1
-        
         result = []
 
         for hospital_idx, persons in enumerate(self.cluster):
@@ -220,37 +232,46 @@ class AmbulancePickup:
                 person_order.sort(key=lambda x: x[3])
 
                 x, y = self.hospital_locations[hospital_idx]
-                # cur_x, cur_y = x, y
-                # cur_time, count, path = 0, 0, []
-                data = []
+                cur_x, cur_y = x, y
+                cur_time, count, path = 0, 0, []
                 for idx, px, py, max_time in person_order:
-                    time_to_hospital = abs(px - x) + abs(py - y)
-                    data.append([idx, px, py, max_time, time_to_hospital])
-
-                df = pd.DataFrame(data, columns= ["index", "x", "y", "time_to_live", "time_to_hospital"])
-
-                ans = routing_one_ambulance(df)
-
-                print("data", df)
-                print("ans", ans)
-                input("press some key to continue")
-
-                    # dist_cur_to_hospital = abs(x - cur_x) + abs(y - cur_y)  # current location to hospital location
-                    # if count == 4:
-                    #     cur_time = cur_time + dist_cur_to_hospital + unload_time
-                    #     cur_x, cur_y = x, y
-                    #     count = 0
+                    dist_cur_to_hospital = abs(x - cur_x) + abs(y - cur_y)  # current location to hospital location
+                    if count == 4:
+                        cur_time = cur_time + dist_cur_to_hospital + unload_time
+                        cur_x, cur_y = x, y
+                        count = 0
+                        result.append(path)
+                        path = []
                     
-                    # dist_to_person = abs(px - cur_x) + abs(py - cur_y)  # current location to person's location
-                    # dist_to_hospital = abs(px - x) + abs(py - y)        # person's location to hospital location
+                    dist_to_person = abs(px - cur_x) + abs(py - cur_y)  # current location to person's location
+                    dist_to_hospital = abs(px - x) + abs(py - y)        # person's location to hospital location
                     
-                    # if (cur_time + dist_to_person + load_time_per_person + dist_to_hospital + unload_time) <= max_time:
-                    #     path.append(idx)
-                    #     count += 1
-                    #     cur_time = cur_time + dist_to_person + load_time_per_person
-                    # else:
-                    #     cur_time
+                    estimated_time = cur_time + dist_to_person + load_time_per_person + dist_to_hospital + unload_time
+                    is_valid = True
+                    for person_idx in path:
+                        if estimated_time > self.rescue_time[person_idx]:
+                            is_valid = False
+                            break
+
+                    if is_valid and estimated_time <= max_time:
+                        path.append(idx)
+                        count += 1
+                        cur_time = cur_time + dist_to_person + load_time_per_person
+                        cur_x, cur_y = px, py
+                    else:
+                        cur_time = cur_time + dist_cur_to_hospital + unload_time
+                        cur_x, cur_y = x, y
+                        count = 0
+                        result.append(path)
+                        path = []
+                        if cur_time + dist_to_hospital + load_time_per_person + dist_to_hospital + unload_time <= max_time:
+                            path.append(idx)
+                            count += 1
+                            cur_time = cur_time + dist_to_person + load_time_per_person
+                            cur_x, cur_y = px, py
                     # print(idx, x, y, max_time)
+        
+        print(result)
 
     # def find_routes_for_hospital(self, hospital_idx):
     #     patients = self.cluster[hospital_idx]
