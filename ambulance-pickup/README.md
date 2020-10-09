@@ -29,3 +29,4 @@ Here is the [data from 2015 having 300 people and five hospitals](https://cs.nyu
 2. [https://github.com/graphhopper/jsprit](https://github.com/graphhopper/jsprit)
 3. [http://www.bernabe.dorronsoro.es/vrp/](http://www.bernabe.dorronsoro.es/vrp/)
 4. [Vehicle Routing Problem Lecture](https://www.youtube.com/watch?v=A1wsIFDKqBk)
+5. [Genetic Algorithms Tutorial](https://www.youtube.com/watch?v=9zfeTw-uFCw&list=PLRqwX-V7Uu6bJM3VgzjNV5YxVxUwzALHV)
