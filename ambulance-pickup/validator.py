@@ -60,27 +60,28 @@ class Hospital:
         self.x = x
         self.y = y
         self.num_ambulances = num_ambulances
-        # ambulance_time array represents the time each ambulance have already spent.
-        # NOTE: this should be sorted in a decreasing order (larger value first).
-        self.ambulance_time = [0] * num_ambulances
+        self.ambulances = [Ambulance(self) for a in range(num_ambulances)]
         return
 
     def __repr__(self):
         return f'{self.hid}: ({self.x},{self.y})'
 
-    def decrement_number_of_ambulances(self, t):
-        self.ambulance_time[t] -= 1
-        if self.ambulance_time[t] == 0:
-            del self.ambulance_time[t]
+    def remove_ambulance(self, a):
+        self.ambulances.remove(a)
+        self.num_ambulances -= 1
         return
 
-    def increment_number_of_ambulances(self, t):
-        if t not in self.ambulance_time:
-            self.ambulance_time[t] = 0
-        self.ambulance_time[t] += 1
+    def add_ambulance(self, a):
+        self.ambulances.append(a)
+        self.num_ambulances += 1
         return
 
-    def rescue(self, people_on_ambulance, hospitals):
+    def choose_ambulance(self):
+        return min(self.ambulances, key=lambda a: a.time)
+
+    def rescue(self, people_on_ambulance, hospitals, end_hospital):
+        ambulance = self.choose_ambulance()
+        self.remove_ambulance(ambulance)
         if 4 < len(people_on_ambulance):
             raise IllegalPlanError('Cannot rescue more than four people at once: %s' % people_on_ambulance)
         already_rescued = [p for p in people_on_ambulance if p.rescued]
@@ -88,43 +89,40 @@ class Hospital:
             raise IllegalPlanError('Person already rescued: %s' % already_rescued)
         # t: time to take
         # note: we don't have to go back to the starting hospital
-        # so go to the closest from the last person
-        t = 0
+        time_for_this_trip = 0
         curr_location = self
         for p in people_on_ambulance:
-            t += travel_time(curr_location, p)  # add time for traveling to person
-            t += 1  # add 1 minute for loading the person
+            time_for_this_trip += travel_time(curr_location, p)  # add time for traveling to person
+            time_for_this_trip += 1  # add 1 minute for loading the person
             curr_location = p
-        # look for closest hospital to return to
-        closest_hospital = 0
-        travel_time_to_closest_hospital = None
-        for hosp in hospitals:
-            temp_dist = travel_time(curr_location, hosp)
-            if not travel_time_to_closest_hospital:
-                travel_time_to_closest_hospital = temp_dist
-                closest_hospital = hosp
-            elif temp_dist < travel_time_to_closest_hospital:
-                travel_time_to_closest_hospital = temp_dist
-                closest_hospital = hosp
-        t += travel_time_to_closest_hospital
-        t += 1  # add time for unloading up to 4 people
-
-        # check if there are any people on the ambulance that wont make it in time
-        for (i, t0) in enumerate(self.ambulance_time):
-            if not [p for p in people_on_ambulance if p.rescue_time < t0 + t]:
-                break
-        else:
-            raise IllegalPlanError(f'Either of these people cannot make it: {people_on_ambulance}')
-        # proceed the time.
-        self.ambulance_time[i] += t
-        # keep it sorted.
-        self.ambulance_time.sort()
-        self.ambulance_time.reverse()
+        time_for_this_trip += travel_time(curr_location, end_hospital)
+        time_for_this_trip += 1  # add time for unloading up to 4 people
+        ambulance.add_time(time_for_this_trip)  # proceed the time for this ambulance
+        if [p for p in people_on_ambulance if p.rescue_time < ambulance.time]:
+            raise IllegalPlanError(f'Either of these people cannot make it: {people_on_ambulance}, ambulance would '
+                                   f'arrive at time: {ambulance.time} which is too late')
         for p in people_on_ambulance:
             p.rescued = True
-        print('Rescued:', ' and '.join(map(str, people_on_ambulance)), 'taking time:', t,
-              ' with the ambulance ending at hospital', closest_hospital)
+        end_hospital.add_ambulance(ambulance)
+        print('Rescued:', ' and '.join(map(str, people_on_ambulance)), 'taking time:', time_for_this_trip,
+              ' with the ambulance ending at hospital', end_hospital)
         return
+
+
+# Ambulance object
+AID = 0
+
+
+class Ambulance:
+
+    def __init__(self, initial_hospital):
+        global AID
+        AID += 1
+        self.aid = AID
+        self.time = 0
+
+    def add_time(self, time_to_add):
+        self.time += time_to_add
 
 
 def read_input_data(fname):
@@ -184,20 +182,28 @@ def read_results(people, hospitals):
             print('!!! Ignored line: %r' % line, file=sys.stderr)
             continue
         try:
-            hospital = None
-            people_rescued = []
+            start_hospital, end_hospital = None, None
+            people_to_rescue = []
             for (i, (w, num_ambulances)) in enumerate(p1.findall(line)):
                 hospital_match = p2.match(w)
                 if hospital_match:
                     # Hospital hospital_id:(x,y)
-                    if i != 0:
-                        raise FormatSyntaxError('Specify a person now: %r' % line)
                     (hospital_id, x, y) = list(map(int, hospital_match.groups()))
                     if hospital_id <= 0 or hospital_id > len(hospitals):
                         raise FormatSyntaxError(f'Illegal hospital id: {hospital_id}')
-                    hospital = hospitals[hospital_id - 1]
-                    if hospital.x != x or hospital.y != y:
-                        raise DataMismatchError(f'Hospital location mismatch: {hospital} != {hospital_id}: ({x},{y})')
+                    if i == 0:
+                        start_hospital = hospitals[hospital_id - 1]
+                        if start_hospital.x != x or start_hospital.y != y:
+                            raise DataMismatchError(
+                                f'Start Hospital location mismatch: {start_hospital} != {hospital_id}: ({x},{y})')
+                        if start_hospital.num_ambulances == 0:
+                            raise FormatSyntaxError(f'Start hospital ({start_hospital}) has no ambulances')
+                    else:
+                        end_hospital = hospitals[hospital_id - 1]
+                        if end_hospital.x != x or end_hospital.y != y:
+                            raise DataMismatchError(
+                                f'End Hospital location mismatch: {end_hospital} != {hospital_id}: ({x},{y})')
+
                     continue
                 person_match = p3.match(w)
                 if person_match:
@@ -210,16 +216,18 @@ def read_results(people, hospitals):
                     person = people[person_id - 1]
                     if person.x != x or person.y != y or person.rescue_time != rescue_time:
                         raise DataMismatchError(f'Person mismatch: {person} != {person_id}: ({x, y, rescue_time})')
-                    people_rescued.append(person)
+                    people_to_rescue.append(person)
                     continue
                 # error
                 raise FormatSyntaxError('Expected "n:(x,y)" or "n:(x,y,t)": %r' % line)
 
-            if not hospital or not people_rescued:
+            if not start_hospital or not people_to_rescue or not end_hospital:
                 print('!!! Insufficient data: %r' % line, file=sys.stderr)
                 continue
-            hospital.rescue(people_rescued, hospitals)
-            score += len(people_rescued)
+            start_hospital.rescue(people_to_rescue, hospitals, end_hospital)
+            # start_hospital.num_ambulances -= 1
+            # end_hospital.num_ambulances += 1
+            score += len(people_to_rescue)
         except ValidationError as x:
             print('!!!', x, file=sys.stderr)
     print('Total score:', score)
@@ -228,7 +236,7 @@ def read_results(people, hospitals):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print('usage: validator.py datafile resultfile') #resultfile is optional
+        print('usage: validator.py datafile resultfile')
         sys.exit(2)
     people_data, hospital_data = read_input_data(sys.argv[1])
     del sys.argv[1]
