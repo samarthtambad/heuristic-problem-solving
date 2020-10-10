@@ -22,7 +22,7 @@ class Person:
         return abs(self.x - px) + abs(self.y - py)
 
     def __str__(self):
-        return "Person: {0} ({1}, {2}) {3}s\n".format(self.id, self.x, self.y, self.rescue_time)
+        return "Person: {0} ({1}, {2}) {3}s {4}s\n".format(self.id, self.x, self.y, self.rescue_time, self.time_from_hospital())
 
     def __repr__(self):
-        return "Person: {0} ({1}, {2}) {3}s\n".format(self.id, self.x, self.y, self.rescue_time)
+        return "Person: {0} ({1}, {2}) {3}s {4}s\n".format(self.id, self.x, self.y, self.rescue_time, self.time_from_hospital())

@@ -12,8 +12,6 @@ from person import Person
 
 class AmbulancePickup:
     def __init__(self, file_path):
-
-        # parsed
         self.x_loc = []
         self.y_loc = []
         self.rescue_time = []
@@ -27,15 +25,14 @@ class AmbulancePickup:
         self.hospital_locations = []
         self.cluster = []
         self.people_locations = np.empty((0,2), int)
-        # self.cluster_map = np.array([])
         
         # result
         self.result = []
 
         # function calls
         self.read_input(file_path)
-        # print(self.people_locations)
         self.assign_cluster()
+        print(self.find_paths())
         # self.print_input()
 
     def read_input(self, file_path):
@@ -78,6 +75,48 @@ class AmbulancePickup:
         for i in range(len(self.num_ambulance)):
             print(self.num_ambulance[i])
 
+    # def assign_cluster(self):
+    #     kmeans = KMeans(n_clusters=self.num_hospitals, random_state=0).fit(self.people_locations)
+    #     print(kmeans.labels_)
+        
+    #     # assign hospital locations
+    #     self.hospital_locations = kmeans.cluster_centers_.astype(int)
+    #     print(self.hospital_locations)
+
+    #     for idx, (x, y) in enumerate(self.hospital_locations):
+    #         hospital = Hospital(idx, x, y, self.num_ambulance_at_hospital[idx])
+    #         self.hospitals.append(hospital)
+
+    #     # max-heap of number-of-ambulances with hospital index
+    #     heap = []
+    #     for i, count in enumerate(self.num_ambulance_at_hospital):
+    #         heap.append((-count, i))
+    #     heapq.heapify(heap)
+
+    #     print(heap)
+
+    #     cluster_map = {}
+    #     counter = Counter(kmeans.labels_)
+    #     print(counter)
+
+    #     for i, (elem, count) in enumerate(counter.most_common()):
+    #         count, hospital_idx = heapq.heappop(heap)
+    #         print(-count, hospital_idx)
+    #         cluster_map[elem] = hospital_idx
+        
+    #     print(cluster_map)
+        
+    #     self.cluster = [[] for _ in range(self.num_hospitals)]
+    #     for person_idx, cluster_num in enumerate(kmeans.labels_):
+    #         person = Person(person_idx, self.x_loc[person_idx], self.y_loc[person_idx], self.rescue_time[person_idx])
+    #         hospital_idx = cluster_map[cluster_num]
+    #         person.assign_hospital(hospital_idx, self.hospital_locations[hospital_idx][0], self.hospital_locations[hospital_idx][1])
+    #         self.persons.append(person)
+    #         self.hospitals[hospital_idx].add_person(person)
+
+    #     print(self.persons)
+    #     print(self.hospitals)
+    
     def assign_cluster(self):
         kmeans = KMeans(n_clusters=self.num_hospitals, random_state=0).fit(self.people_locations)
         print(kmeans.labels_)
@@ -86,33 +125,31 @@ class AmbulancePickup:
         self.hospital_locations = kmeans.cluster_centers_.astype(int)
         print(self.hospital_locations)
 
+        # max-heap of number-of-ambulances with hospital index
+        # heap = []
+        # for i, count in enumerate(self.num_ambulance_at_hospital):
+        #     heap.append((-count, i))
+        # heapq.heapify(heap)
+
+        # print(heap)
+
+        # cluster_map = {}
+        # counter = Counter(kmeans.labels_)
+        # print(counter)
+
+        # for i, (elem, count) in enumerate(counter.most_common()):
+        #     count, hospital_idx = heapq.heappop(heap)
+        #     print(-count, hospital_idx)
+        #     cluster_map[elem] = hospital_idx
+        
+        # print(cluster_map)
+
         for idx, (x, y) in enumerate(self.hospital_locations):
             hospital = Hospital(idx, x, y, self.num_ambulance_at_hospital[idx])
             self.hospitals.append(hospital)
-
-        # max-heap of number-of-ambulances with hospital index
-        heap = []
-        for i, count in enumerate(self.num_ambulance_at_hospital):
-            heap.append((-count, i))
-        heapq.heapify(heap)
-
-        print(heap)
-
-        cluster_map = {}
-        counter = Counter(kmeans.labels_)
-        print(counter)
-
-        for i, (elem, count) in enumerate(counter.most_common()):
-            count, hospital_idx = heapq.heappop(heap)
-            print(-count, hospital_idx)
-            cluster_map[elem] = hospital_idx
         
-        print(cluster_map)
-        
-        self.cluster = [[] for _ in range(self.num_hospitals)]
-        for person_idx, cluster_num in enumerate(kmeans.labels_):
+        for person_idx, hospital_idx in enumerate(kmeans.labels_):
             person = Person(person_idx, self.x_loc[person_idx], self.y_loc[person_idx], self.rescue_time[person_idx])
-            hospital_idx = cluster_map[cluster_num]
             person.assign_hospital(hospital_idx, self.hospital_locations[hospital_idx][0], self.hospital_locations[hospital_idx][1])
             self.persons.append(person)
             self.hospitals[hospital_idx].add_person(person)
@@ -125,6 +162,13 @@ class AmbulancePickup:
         
         # self.find_routes()
     
+    def find_paths(self):
+        result = []
+        for hospital in self.hospitals:
+            paths = hospital.find_paths()
+            result.append((hospital.get_info(), paths))
+        
+        return result
 
     # def generate_routes_greedy(self):
     #     load_time_per_person = 1
