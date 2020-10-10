@@ -3,8 +3,8 @@ person( xloc,yloc,rescuetime)
 91,31,2000
 57,83,2000
 7,39,2000
-23,39,2000
-71,5,2000
+23,39,72
+71,5,54
 
 
 hospital(numambulance)

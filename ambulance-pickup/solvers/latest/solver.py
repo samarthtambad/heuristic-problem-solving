@@ -202,6 +202,7 @@ class AmbulancePickup:
 
             # print path info
             result = self.find_solution()
+            print(result)
             for path in result:
                 start = path[0]
                 hospital_x, hospital_y = self.hospital_locations[start]
