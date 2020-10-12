@@ -23,6 +23,7 @@ class AmbulancePickup:
 
         # computed
         self.num_hospitals = 0
+        self.num_persons = 0
         self.hospital_locations = []
         self.cluster = []
         self.people_locations = np.empty((0,2), int)
@@ -68,6 +69,7 @@ class AmbulancePickup:
                     # print("{0}".format(ln))
         
         self.num_hospitals = len(self.num_ambulance_at_hospital)
+        self.num_persons = len(self.x_loc)
 
     def print_input(self):
         n = len(self.x_loc)
@@ -139,6 +141,56 @@ class AmbulancePickup:
         
         return savable
 
+    # def find_solution(self):
+    #     result = []
+    #     num_ambulance = len(self.ambulances)
+    #     ambulances = [i for i in range(num_ambulance)]
+        
+    #     saved = set()
+
+    #     for ambulance_idx in ambulances:
+    #         cur_time, cur_x, cur_y, start = 0, self.ambulances[ambulance_idx][0], self.ambulances[ambulance_idx][1], self.ambulances[ambulance_idx][2]
+    #         path, count = [start], 0
+    #         end = None
+
+    #         while True:
+    #             savable = self.get_persons_savable(path, cur_time, cur_x, cur_y)
+
+    #             if len(savable) == 0:
+    #                 break
+
+    #             found = False
+    #             for person, hospital in savable:
+    #                 if person not in saved:
+    #                     found = True
+    #                     saved.add(person)
+    #                     path.append(person)
+    #                     x, y = self.x_loc[person], self.y_loc[person]
+    #                     hospital_x, hospital_y = self.hospital_locations[hospital]
+    #                     time_to_person = abs(x - cur_x) + abs(y - cur_y)
+    #                     cur_time = cur_time + time_to_person + self.load_time_per_person
+    #                     cur_x, cur_y = x, y
+                        
+    #                     if len(path) == 4:
+    #                         time_to_hospital = abs(cur_x - hospital_x) + abs(cur_y - hospital_y)
+    #                         cur_time = cur_time + time_to_hospital + self.unload_time
+    #                         cur_x, cur_y = hospital_x, hospital_y
+    #                         path.append(hospital)
+    #                         result.append(path)
+    #                         path = [hospital]
+
+    #                     end = hospital
+    #                     break
+                
+    #             if not found:
+    #                 break
+
+    #         if len(path) > 0:
+    #             path.append(end)
+    #             result.append(path)
+            
+    #     return result
+
     def find_solution(self):
         result = []
         num_ambulance = len(self.ambulances)
@@ -146,19 +198,15 @@ class AmbulancePickup:
         
         saved = set()
 
-        for ambulance in ambulances:
-            cur_time, cur_x, cur_y, start = 0, self.ambulances[ambulance][0], self.ambulances[ambulance][1], self.ambulances[ambulance][2]
-            path, count = [start], 0
-            end = None
+        for ambulance_idx in ambulances:
+            cur_time, cur_x, cur_y = 0, self.ambulances[ambulance_idx][0], self.ambulances[ambulance_idx][1]
+            path, count = [], 0
+            start, end = self.ambulances[ambulance_idx][2], self.ambulances[ambulance_idx][2]   # index of hospital of ambulance
 
-            while True:
-                savable = self.get_persons_savable(path, cur_time, cur_x, cur_y)
-
-                if len(savable) == 0:
-                    break
+            for _ in range(self.num_persons):
 
                 found = False
-                for person, hospital in savable:
+                for person, hospital in self.get_persons_savable(path, cur_time, cur_x, cur_y):
                     if person not in saved:
                         found = True
                         saved.add(person)
@@ -173,19 +221,17 @@ class AmbulancePickup:
                             time_to_hospital = abs(cur_x - hospital_x) + abs(cur_y - hospital_y)
                             cur_time = cur_time + time_to_hospital + self.unload_time
                             cur_x, cur_y = hospital_x, hospital_y
-                            path.append(hospital)
-                            result.append(path)
-                            path = [hospital]
+                            result.append((start, hospital, path))
+                            path = []
 
                         end = hospital
                         break
-                
+                    
                 if not found:
                     break
 
             if len(path) > 0:
-                path.append(end)
-                result.append(path)
+                result.append((start, end, path))
             
         return result
 
@@ -203,17 +249,41 @@ class AmbulancePickup:
             # print path info
             result = self.find_solution()
             print(result)
-            for path in result:
-                start = path[0]
+            for start, end, path in result:
                 hospital_x, hospital_y = self.hospital_locations[start]
                 print("Ambulance: {0}: ({1},{2}), ".format(start+1, hospital_x, hospital_y), file=f, end='')
 
-                for person_idx in path[1:-1]:
+                for person_idx in path:
                     print("{0}: ({1},{2},{3}), ".format(person_idx+1, self.x_loc[person_idx], self.y_loc[person_idx], self.rescue_time[person_idx]), file=f, end='')
 
-                end = path[-1]
                 hospital_x, hospital_y = self.hospital_locations[end]
                 print("{0}: ({1},{2})".format(end+1, hospital_x, hospital_y), file=f)
+
+    # def generate_output(self):
+    #     with open("result", "w") as f:
+
+    #         # print hospitals info
+    #         for hospital_idx in range(self.num_hospitals):
+    #             hospital_x, hospital_y = self.hospital_locations[hospital_idx]
+    #             num_ambulance = self.num_ambulance_at_hospital[hospital_idx]
+    #             print("Hospital: {0}, {1}, {2} ".format(hospital_x, hospital_y, num_ambulance), file=f)
+            
+    #         print("", file=f)
+
+    #         # print path info
+    #         result = self.find_solution()
+    #         print(result)
+    #         for path in result:
+    #             start = path[0]
+    #             hospital_x, hospital_y = self.hospital_locations[start]
+    #             print("Ambulance: {0}: ({1},{2}), ".format(start+1, hospital_x, hospital_y), file=f, end='')
+
+    #             for person_idx in path[1:-1]:
+    #                 print("{0}: ({1},{2},{3}), ".format(person_idx+1, self.x_loc[person_idx], self.y_loc[person_idx], self.rescue_time[person_idx]), file=f, end='')
+
+    #             end = path[-1]
+    #             hospital_x, hospital_y = self.hospital_locations[end]
+    #             print("{0}: ({1},{2})".format(end+1, hospital_x, hospital_y), file=f)
 
 
 if __name__ == "__main__":
