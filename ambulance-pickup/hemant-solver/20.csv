@@ -1,0 +1,3 @@
+x,y,time_to_live,cluster,hospital_number,time_to_hospital,index
+84,26,95,1,3,20.555555555555557,4
+89,27,29,1,3,26.555555555555557,49
