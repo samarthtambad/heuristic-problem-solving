@@ -165,7 +165,7 @@ class AmbulancePickup:
                             cur_time = cur_time + time_to_hospital + self.unload_time
                             cur_x, cur_y = hospital_x, hospital_y
                             result.append((start, hospital, path))
-                            path = []
+                            path, start = [], hospital
 
                         end = hospital
                         break
