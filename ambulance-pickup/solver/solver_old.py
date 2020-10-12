@@ -85,35 +85,28 @@ class AmbulancePickup:
         self.hospital_locations = kmeans.cluster_centers_.astype(int)
         print(self.hospital_locations)
 
+        # max-heap of number-of-ambulances with hospital index
+        heap = []
+        for i, count in enumerate(self.num_ambulance_at_hospital):
+            heap.append((-count, i))
+        heapq.heapify(heap)
+
+        counter = Counter(kmeans.labels_)
+
         ambulances = []
-        for hospital_idx, count in enumerate(self.num_ambulance_at_hospital):
-            x, y = self.hospital_locations[hospital_idx]
+        for i, (elem, _) in enumerate(counter.most_common()):
+            count, _ = heapq.heappop(heap)
+            count = -count
+            x, y = self.hospital_locations[elem]
             for _ in range(count):
-                ambulances.append([x, y, hospital_idx])
-
-
-        # # max-heap of number-of-ambulances with hospital index
-        # heap = []
-        # for i, count in enumerate(self.num_ambulance_at_hospital):
-        #     heap.append((-count, i))
-        # heapq.heapify(heap)
-
-        # counter = Counter(kmeans.labels_)
-
-        # ambulances = []
-        # for i, (elem, _) in enumerate(counter.most_common()):
-        #     count, _ = heapq.heappop(heap)
-        #     count = -count
-        #     x, y = self.hospital_locations[elem]
-        #     for _ in range(count):
-        #         ambulances.append([x, y, elem])
+                ambulances.append([x, y, elem])
         
         self.ambulances = ambulances
         print(ambulances)
 
         # self.find_routes()
 
-    def get_persons_savable(self, cur_selected, cur_time, cur_x, cur_y, allowed_destinations):
+    def get_persons_savable(self, cur_selected, cur_time, cur_x, cur_y):
         savable = []
         load_time_per_person = 1
         unload_time = 1
@@ -121,9 +114,8 @@ class AmbulancePickup:
 
         for person_idx in range(num_persons):
             x, y, rescue_time = self.x_loc[person_idx], self.y_loc[person_idx], self.rescue_time[person_idx]
-            destinations = []
             
-            for hospital_idx in allowed_destinations:
+            for hospital_idx in range(self.num_hospitals):
                 hospital_x, hospital_y = self.hospital_locations[hospital_idx]
 
                 time_to_person = abs(x - cur_x) + abs(y - cur_y)                          # current location to person's location
@@ -138,12 +130,9 @@ class AmbulancePickup:
                         break
                 
                 if is_valid and estimated_time <= rescue_time:
-                    destinations.append(hospital_idx)
-                    # savable.append((person_idx, hospital_idx))
+                    savable.append((person_idx, hospital_idx))
+                    break
         
-            if len(destinations) > 0:
-                savable.append((person_idx, destinations))
-                    
         return savable
 
     def find_solution(self):
@@ -156,15 +145,12 @@ class AmbulancePickup:
         for ambulance_idx in ambulances:
             cur_time, cur_x, cur_y = 0, self.ambulances[ambulance_idx][0], self.ambulances[ambulance_idx][1]
             start, end, path = self.ambulances[ambulance_idx][2], self.ambulances[ambulance_idx][2], []   # index of hospital of ambulance
-            destinations = [i for i in range(self.num_hospitals)]
 
             for _ in range(self.num_persons):
 
                 found = False
-                for person, destinations in self.get_persons_savable(path, cur_time, cur_x, cur_y, destinations):
-                    hospital = destinations[0]
+                for person, hospital in self.get_persons_savable(path, cur_time, cur_x, cur_y):
                     if person not in saved:
-                        print("Ambulance: {0}, Person: {1}, Destinations: {2}".format(ambulance_idx+1, person+1, destinations))
                         found = True
                         saved.add(person)
                         path.append(person)
@@ -178,7 +164,6 @@ class AmbulancePickup:
                             time_to_hospital = abs(cur_x - hospital_x) + abs(cur_y - hospital_y)
                             cur_time = cur_time + time_to_hospital + self.unload_time
                             cur_x, cur_y = hospital_x, hospital_y
-                            print("Ambulance: {0}, Start: {1}, Path: {2}, End: {3}".format(ambulance_idx+1, start+1, path, hospital+1))
                             result.append((start, hospital, path))
                             path, start = [], hospital
 
@@ -189,7 +174,6 @@ class AmbulancePickup:
                     break
 
             if len(path) > 0:
-                print("Ambulance: {0}, Start: {1}, Path: {2}, End: {3}".format(ambulance_idx+1, start+1, path, end+1))
                 result.append((start, end, path))
             
         return result
@@ -207,7 +191,6 @@ class AmbulancePickup:
 
             # print path info
             result = self.find_solution()
-            # result.sort(key=lambda x: x[0])
             print(result)
             for start, end, path in result:
                 hospital_x, hospital_y = self.hospital_locations[start]
