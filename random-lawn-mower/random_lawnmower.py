@@ -133,6 +133,7 @@ class Game:
                 f'{self.client_names[(rnd + 1) % 2]}: {r(self.get_total_score(1 + (rnd + 1) % 2), 3)}, {self.client_names[rnd % 2]}: {r(self.get_total_score(1 + rnd % 2), 3)} ' +
                 f'(this round: {self.client_names[(rnd + 1) % 2]}: {r(self.get_score(1 + (rnd + 1) % 2), 3)}, {self.client_names[rnd % 2]}: {r(self.get_score(1 + rnd % 2), 3)})')
             print(f'{self.client_names[index]} just made an attachment with score {taken(self.prior[-1], self.prior[:-1], self.d, self.rope)}')
+        input('press any key')
     
     def make_move(self, index, round, turn):
         if self.move_buffers[index]:
