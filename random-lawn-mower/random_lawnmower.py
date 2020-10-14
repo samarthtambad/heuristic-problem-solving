@@ -11,6 +11,8 @@ SCALE = 10
 RANGES = [-250, 250], [-200, 1200]
 
 def area(r1, r2, d):
+    if r1 <= 0 or r2 <= 0:
+        return 0
     if r1 + r2 < d:
         return 0
     if r1 + d < r2:

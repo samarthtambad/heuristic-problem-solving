@@ -7,6 +7,7 @@ import time
 
 DATA_SIZE = 4096
 
+
 def area(r1, r2, d):
     if r1 <= 0 or r2 <= 0:
         return 0
@@ -20,13 +21,16 @@ def area(r1, r2, d):
         r2 ** 2 * math.acos((d ** 2 - r1 ** 2 + r2 ** 2) / (2 * d * r2)) - \
         ((-d + r1 + r2) * (d + r1 - r2) * (d - r1 + r2) * (d + r1 + r2)) ** 0.5 / 2
 
+
 def circum(r11, r12, r21, r22, d):
     return area(r12, r22, d) - area(r12, r21, d) - area(r11, r22, d) + area(r11, r21, d)
+
 
 def taken(attachment, prior, d, rope):
     lower = max([i for i in prior if i <= attachment] or [0])
     higher = min([i for i in prior if i >= attachment] or [rope])
     return circum(lower, attachment, rope - higher, rope - attachment, d)
+
 
 def get_socket(s, timed=False, time_limit=None):
     t0 = time.time()
@@ -41,8 +45,31 @@ def get_socket(s, timed=False, time_limit=None):
             return None, time_limit, False
         time.sleep(0.01)
 
+
 def send_socket(s, data):
     s.sendall(data.encode('utf-8'))
+
+
+def next_move(prior_moves, d, rope):
+    # return next_move_random(prior_moves, d, rope)
+    return next_move_greedy(prior_moves, d, rope)
+
+
+def next_move_random(prior_moves, d, rope):
+    tries = 10
+    move = max([random.random() * rope for _ in range(tries)], key=lambda x: taken(x, prior_moves, d, rope))
+    return move
+
+
+def next_move_greedy(prior_moves, d, rope):
+    best_move, best_score = 0, 0
+    for i in range(int(rope)+1):
+        score = taken(i, prior_moves, d, rope)
+        if score > best_score:
+            best_score = score
+            best_move = i
+    return best_move
+
 
 def run(d, rope, attachments_per_player, tries, site, name, player_order):
     HOST = site.split(':')[0]
@@ -52,11 +79,14 @@ def run(d, rope, attachments_per_player, tries, site, name, player_order):
     send_socket(s, f'{player_order} {name}')
     for i in range(2 * attachments_per_player):
         moves = json.loads(get_socket(s))['moves']
-        move = max([random.random() * rope for _ in range(tries)], key=lambda x: taken(x, moves, d, rope))
+        move = next_move(moves, d, rope)
         send_socket(s, str(move))
+
 
 def get_argv(x):
     return sys.argv[sys.argv.index(x) + 1]
 
+
 if __name__ == '__main__':
+
     run(float(get_argv('--dist')), float(get_argv('--rope')), int(get_argv('--turns')), int(get_argv('--tries')), get_argv('--site'), get_argv('--name'), 1 if '-f' in sys.argv else 2)
