@@ -16,7 +16,11 @@ Suppose that T1 and T2 play a game in which each wants to use attachments that c
 
 ## How to run?
 ```python
+python3 random_lawnmower.py --dist 1000 --rope 1100 --turns 8 --site localhost:8000
+
 python3 client.py --dist 1000 --rope 1100 --turns 8 --site localhost:8000 --name sam --tries 8 -f
+
+python3 client_greedy.py --dist 1000 --rope 1100 --turns 8 --site localhost:8000 --name test_greedy --tries 8
 
 python3 random_lawnmower_example.py --dist 1000 --rope 1100 --turns 8 --site localhost:8000 --name random --tries 20
 ```

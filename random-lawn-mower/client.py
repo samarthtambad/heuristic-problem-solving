@@ -6,6 +6,8 @@ import sys
 import time
 import copy
 
+from timeit import default_timer as timer
+
 DATA_SIZE = 4096
 
 
@@ -54,7 +56,7 @@ def send_socket(s, data):
 def next_move(attachments_per_player, prior_moves, d, rope):
     # return next_move_random(prior_moves, d, rope)
     # return next_move_greedy(prior_moves, d, rope)
-    return next_move_minimax(attachments_per_player, prior_moves, d, rope)
+    return next_move_special(prior_moves, d, rope)
 
 
 def next_move_random(prior_moves, d, rope):
@@ -73,58 +75,38 @@ def next_move_greedy(prior_moves, d, rope):
     return best_move
 
 
+def next_move_special(prior_moves, d, rope):
+
+    def get_max_score_opponent(moves):
+        first_move, first_move_score = get_possible_moves(moves, d, rope)[0]
+        _, second_move_score = get_possible_moves(moves + [first_move], d, rope)[0]
+        return first_move_score + second_move_score
+
+    timer_start = timer()
+    max_score_diff, best_move = float("-inf"), 200
+    moves = copy.deepcopy(prior_moves)
+    for player_move, player_score in get_possible_moves(prior_moves, d, rope)[:120]:
+        moves.append(player_move)
+        opponent_score = get_max_score_opponent(moves)
+        score_diff = player_score - opponent_score
+        if score_diff > max_score_diff:
+            max_score_diff = score_diff
+            best_move = player_move
+        moves.pop()
+    
+    print("Max Score Diff: {0}, Move: {1}".format(max_score_diff, best_move))
+    timer_end = timer()
+    print("Time: {0} s".format(timer_end - timer_start))
+    return best_move
+
+
 def get_possible_moves(prior_moves, d, rope):
     moves = []
     for i in range(int(rope)+1):
         score = taken(i, prior_moves, d, rope)
         moves.append((i, score))
-    return moves.sort(key=lambda x: x[1], reverse=True)
-
-
-def next_move_minimax(attachments_per_player, prior_moves, d, rope):
-
-    def minimax(moves, depth, alpha, beta, maximizingPlayer):
-        
-        if depth == max_depth:
-            return 
-        
-        if maximizingPlayer:
-            max_score, best_moves = float('-inf'), []
-            possible_moves = get_possible_moves(moves, d, rope)
-            for i in range(branching_factor):
-                cur_move = possible_moves[i]
-                moves.append(cur_move)
-                score, moves = minimax(moves, depth + 1, alpha, beta, False)
-                if score > max_score:
-                    max_score = score
-                    best_moves = moves
-                # update the upper bound
-                # alpha = max(alpha, score)
-                # if alpha >= beta:
-                #     break
-            return max_score, best_moves
-        else:
-            min_score, best_moves = float('inf'), []
-            possible_moves = get_possible_moves(moves, d, rope)
-            for i in range(branching_factor):
-                cur_move = possible_moves[i]
-                moves.append(cur_move)
-                score, moves = minimax(moves, depth + 1, alpha, beta, True)
-                if score < min_score:
-                    min_score = score
-                    best_moves = moves
-                # beta = min(beta, score)
-                # if alpha >= beta:
-                #     break
-            return min_score, best_moves
-
-    max_depth = (2 * attachments_per_player) - len(prior_moves)
-    branching_factor = 4
-    m = copy.deepcopy(prior_moves)
-    idx = len(m)
-    best_score, moves = minimax(m, 0, float('-inf'), float('inf'), True)
-    print("Best Possible Score: {2}, Move: {1}".format(best_score, moves[idx]))
-    return moves[idx]
+    moves.sort(key=lambda x: x[1], reverse=True)
+    return moves
 
 
 def run(d, rope, attachments_per_player, tries, site, name, player_order):
