@@ -4,6 +4,7 @@ import random
 import socket
 import sys
 import time
+import copy
 
 DATA_SIZE = 4096
 
@@ -50,9 +51,10 @@ def send_socket(s, data):
     s.sendall(data.encode('utf-8'))
 
 
-def next_move(prior_moves, d, rope):
+def next_move(attachments_per_player, prior_moves, d, rope):
     # return next_move_random(prior_moves, d, rope)
-    return next_move_greedy(prior_moves, d, rope)
+    # return next_move_greedy(prior_moves, d, rope)
+    return next_move_minimax(attachments_per_player, prior_moves, d, rope)
 
 
 def next_move_random(prior_moves, d, rope):
@@ -71,6 +73,60 @@ def next_move_greedy(prior_moves, d, rope):
     return best_move
 
 
+def get_possible_moves(prior_moves, d, rope):
+    moves = []
+    for i in range(int(rope)+1):
+        score = taken(i, prior_moves, d, rope)
+        moves.append((i, score))
+    return moves.sort(key=lambda x: x[1], reverse=True)
+
+
+def next_move_minimax(attachments_per_player, prior_moves, d, rope):
+
+    def minimax(moves, depth, alpha, beta, maximizingPlayer):
+        
+        if depth == max_depth:
+            return 
+        
+        if maximizingPlayer:
+            max_score, best_moves = float('-inf'), []
+            possible_moves = get_possible_moves(moves, d, rope)
+            for i in range(branching_factor):
+                cur_move = possible_moves[i]
+                moves.append(cur_move)
+                score, moves = minimax(moves, depth + 1, alpha, beta, False)
+                if score > max_score:
+                    max_score = score
+                    best_moves = moves
+                # update the upper bound
+                # alpha = max(alpha, score)
+                # if alpha >= beta:
+                #     break
+            return max_score, best_moves
+        else:
+            min_score, best_moves = float('inf'), []
+            possible_moves = get_possible_moves(moves, d, rope)
+            for i in range(branching_factor):
+                cur_move = possible_moves[i]
+                moves.append(cur_move)
+                score, moves = minimax(moves, depth + 1, alpha, beta, True)
+                if score < min_score:
+                    min_score = score
+                    best_moves = moves
+                # beta = min(beta, score)
+                # if alpha >= beta:
+                #     break
+            return min_score, best_moves
+
+    max_depth = (2 * attachments_per_player) - len(prior_moves)
+    branching_factor = 4
+    m = copy.deepcopy(prior_moves)
+    idx = len(m)
+    best_score, moves = minimax(m, 0, float('-inf'), float('inf'), True)
+    print("Best Possible Score: {2}, Move: {1}".format(best_score, moves[idx]))
+    return moves[idx]
+
+
 def run(d, rope, attachments_per_player, tries, site, name, player_order):
     HOST = site.split(':')[0]
     PORT = int(site.split(':')[1])
@@ -79,7 +135,7 @@ def run(d, rope, attachments_per_player, tries, site, name, player_order):
     send_socket(s, f'{player_order} {name}')
     for i in range(2 * attachments_per_player):
         moves = json.loads(get_socket(s))['moves']
-        move = next_move(moves, d, rope)
+        move = next_move(attachments_per_player, moves, d, rope)
         send_socket(s, str(move))
 
 
