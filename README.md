@@ -7,3 +7,4 @@ A collection of code implemented for the Heuristic Problem Solving (CSCI-GA.2965
 3. [No Tipping Game](no-tipping/README.md)
 4. [Ambulance Pickup](ambulance-pickup/README.md)
 5. [Random Lawn Mower](random-lawn-mower/README.md)
+6. [Evasion Problem](evasion/README.md)
