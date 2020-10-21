@@ -27,7 +27,7 @@ Note the following cases:
 Constraints
 -----------
 2 <= Number of walls <= 10
-1000 <= Size >= 10000
+1000 <= Size <= 10000
 ```
 
 ```
