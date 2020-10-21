@@ -24,6 +24,13 @@ Note the following cases:
 * There are two parallel walls, again let's say horizontally, with one centered 1 unit above the other and both ending, let's say on the right, at the same x-coordinate. For example, if one horizontal wall ends at ```(40, 40)``` and another horizontal wall ends at ```(40, 41)```. Then if the Hunter is at ```(41, 41)``` moving -1 in x and -1 in y, it will bounce off as if it hit a vertical wall, and end up at ```(41, 40)``` moving +1 in x and -1 in y.
 
 ```
+Constraints
+-----------
+2 <= Number of walls <= 10
+1000 <= Size >= 10000
+```
+
+```
 Super-technical: An algorithm for bouncing
 
 The hunter bounce behavior is as follows (* = wall or arena boundary, arrow = hunter moving in the direction it points):
