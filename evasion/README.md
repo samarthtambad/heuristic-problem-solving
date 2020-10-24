@@ -26,8 +26,8 @@ Note the following cases:
 ```
 Constraints
 -----------
-2 <= Number of walls <= 10
-1000 <= Size <= 10000
+2 <= M (max number of walls at any time) <= 10
+1 <= N (number of steps between creation of walls) <= 50
 ```
 
 ```
