@@ -17,7 +17,7 @@ class HorizontalWall(Wall):
     def occupies(self, px, py) -> bool:
         return py == self.y and self.x1 <= px <= self.x2
 
-    def __str__(self):
+    def __repr__(self):
         return "0 {0} {1} {2}".format(self.y, self.x1, self.x2)
 
 
@@ -31,7 +31,7 @@ class VerticalWall(Wall):
     def occupies(self, px, py) -> bool:
         return px == self.x and self.y1 <= py <= self.y2
 
-    def __str__(self):
+    def __repr__(self):
         return "1 {0} {1} {2}".format(self.x, self.y1, self.y2)
 
 
@@ -52,5 +52,5 @@ class DiagonalWall(Wall):
         offset = py - self.y1
         return (self.x1 + offset == px or self.x1 + offset + 1 == px) and self.x1 <= px <= self.x2 and self.y1 <= py <= self.y2
 
-    def __str__(self):
+    def __repr__(self):
         return "2 {0} {1} {2} {3} {4}".format(self.x1, self.x2, self.y1, self.y2, self.build_direction)
