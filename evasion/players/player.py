@@ -132,8 +132,27 @@ class EvasionGame:
         return self.prey_move()
 
     def hunter_move(self):
-        wall_type_to_add = random.randint(0, 3)
+        wall_type_to_add = 0
         wall_idxs_to_delete = []
+
+        xdist = self.state.hunterXPos - self.state.preyXPos
+        ydist = self.state.hunterYPos - self.state.preyYPos
+
+        if self.state.hunterXVel == 0:
+            wall_type_to_add = 0
+        elif xdist * self.state.hunterXVel >= 0:
+            wall_type_to_add = 0
+        elif 2 <= abs(xdist) <= 4:
+            wall_type_to_add = 2
+        elif self.state.hunterYVel == 0:
+            wall_type_to_add = 0
+        elif ydist * self.state.hunterYVel >= 0:
+            wall_type_to_add = 0
+        elif 2 <= abs(ydist) <= 4:
+            wall_type_to_add = 1
+        else:
+            wall_type_to_add = 0
+
         return "{0} {1} {2} {3}".format(self.state.gameNum, self.state.tickNum, wall_type_to_add, " ".join(wall_idxs_to_delete))
 
     def prey_move_random(self):
