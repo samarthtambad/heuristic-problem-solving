@@ -5,6 +5,11 @@ import random
 import sys
 import time
 import random
+import math
+
+
+def dist(x1, y1, x2, y2):
+    return math.sqrt(math.pow(x1 - x2, 2) + math.pow(y1 - y2, 2))
 
 
 class GameState:
@@ -131,10 +136,44 @@ class EvasionGame:
         wall_idxs_to_delete = []
         return "{0} {1} {2} {3}".format(self.state.gameNum, self.state.tickNum, wall_type_to_add, " ".join(wall_idxs_to_delete))
 
-    def prey_move(self):
+    def prey_move_random(self):
         x = random.randint(-1, 1)
         y = random.randint(-1, 1)
         return "{0} {1} {2} {3}".format(self.state.gameNum, self.state.tickNum, x, y)
+
+    def prey_move(self):
+        close_move = 12
+        dx, dy = 0, 0
+        if dist(self.state.preyXPos, self.state.preyYPos, self.state.hunterXPos, self.state.hunterYPos) < close_move:
+            if self.state.hunterXVel == 1 and self.state.hunterYVel == -1:
+                if self.state.preyXPos > self.state.hunterXPos and self.state.preyYPos < self.state.hunterYPos:
+                    dx = -1 if abs(self.state.preyXPos - self.state.hunterXPos) < abs(self.state.preyYPos - self.state.hunterYPos) else 1
+                    dy = -1 if abs(self.state.preyXPos - self.state.hunterXPos) < abs(self.state.preyYPos - self.state.hunterYPos) else 1
+                else:
+                    dx, dy = -1, 1
+            elif self.state.hunterXVel == 1 and self.state.hunterYVel == 1:
+                if self.state.preyXPos > self.state.hunterXPos and self.state.preyYPos > self.state.hunterYPos:
+                    dx = -1 if abs(self.state.preyXPos - self.state.hunterXPos) < abs(self.state.preyYPos - self.state.hunterYPos) else 1
+                    dy = 1 if abs(self.state.preyXPos - self.state.hunterXPos) < abs(self.state.preyYPos - self.state.hunterYPos) else -1
+                else:
+                    dx, dy = -1, -1
+            elif self.state.hunterXVel == -1 and self.state.hunterYVel == 1:
+                if self.state.preyXPos < self.state.hunterXPos and self.state.preyYPos > self.state.hunterYPos:
+                    dx = -1 if abs(self.state.preyXPos - self.state.hunterXPos) > abs(self.state.preyYPos - self.state.hunterYPos) else 1
+                    dy = -1 if abs(self.state.preyXPos - self.state.hunterXPos) > abs(self.state.preyYPos - self.state.hunterYPos) else 1
+                else:
+                    dx, dy = 1, -1
+            elif self.state.hunterXVel == -1 and self.state.hunterYVel == -1:
+                if self.state.preyXPos < self.state.hunterXPos and self.state.preyYPos < self.state.hunterYPos:
+                    dx = -1 if abs(self.state.preyXPos - self.state.hunterXPos) > abs(self.state.preyYPos - self.state.hunterYPos) else 1
+                    dy = 1 if abs(self.state.preyXPos - self.state.hunterXPos) > abs(self.state.preyYPos - self.state.hunterYPos) else -1
+                else:
+                    dx, dy = 1, 1
+        else:
+            dx = -1 if self.state.preyXPos > self.state.hunterXPos else 1
+            dy = -1 if self.state.preyYPos > self.state.hunterYPos else 1
+
+        return "{0} {1} {2} {3}".format(self.state.gameNum, self.state.tickNum, dx, dy)
 
 
 if __name__ == "__main__":
