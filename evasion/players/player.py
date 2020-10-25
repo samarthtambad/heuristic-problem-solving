@@ -26,9 +26,11 @@ class GameState:
         self.numWalls = None
         self.walls = None
 
+        self.__empty_wall_positions = []
+
     def set(self, datastr):
         data = list(map(int, datastr.split()))
-        print(data)
+        # print(data)
 
         self.playerTimeLeft = data[0]
         self.gameNum = data[1]
@@ -47,8 +49,9 @@ class GameState:
         self.numWalls = data[14]
 
         idx = 15
+        self.walls = []
         for _ in range(self.numWalls):
-            if idx == 0 or idx == 1:
+            if data[idx] == 0 or data[idx] == 1:
                 self.walls.append(data[idx:idx+4])
                 idx = idx + 4
             else:
@@ -68,7 +71,7 @@ class GameState:
               hunterXPos: {8}
               hunterYPos: {9}
               hunterXVel: {10}
-              hunterYVel: {11]
+              hunterYVel: {11}
               preyXPos: {12}
               preyYPos: {13}
               numWalls: {14}
@@ -110,7 +113,7 @@ class EvasionGame:
             to_send = "remember_the_name"
         else:
             self.state.set(data)
-            # self.state.print()
+            self.state.print()
             to_send = self.move()
 
         if to_send is not None:
@@ -124,10 +127,14 @@ class EvasionGame:
         return self.prey_move()
 
     def hunter_move(self):
-        return "hunter_move"
+        wall_type_to_add = random.randint(0, 3)
+        wall_idxs_to_delete = []
+        return "{0} {1} {2} {3}".format(self.state.gameNum, self.state.tickNum, wall_type_to_add, " ".join(wall_idxs_to_delete))
 
     def prey_move(self):
-        return "prey_move"
+        x = random.randint(-1, 1)
+        y = random.randint(-1, 1)
+        return "{0} {1} {2} {3}".format(self.state.gameNum, self.state.tickNum, x, y)
 
 
 if __name__ == "__main__":
