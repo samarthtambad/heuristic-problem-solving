@@ -333,15 +333,23 @@ class EvasionGame:
     def hunter_move(self):
         wall_type_to_add = self.get_wall_type_to_add()
         wall_idxs_to_delete = []
-        if len(self.state.walls) == self.state.maxWalls:
-            preyX, preyY = self.state.preyXPos, self.state.preyYPos
-            hunterX, hunterY = self.state.hunterXPos, self.state.hunterYPos
-            temp_walls = copy.deepcopy(self.state.walls)
-            wall_idxs_to_delete, area, reachable = self.get_walls_to_delete(hunterX, hunterY, preyX, preyY, temp_walls)
-            if not reachable:
-                wall_idxs_to_delete = [i for i in range(len(self.state.walls))]
-            if len(wall_idxs_to_delete) == 0:
-                wall_idxs_to_delete = [random.randint(0, len(self.state.walls))]
+        if self.state.maxWalls >= 5:
+            if len(self.state.walls) == self.state.maxWalls:
+                preyX, preyY = self.state.preyXPos, self.state.preyYPos
+                hunterX, hunterY = self.state.hunterXPos, self.state.hunterYPos
+                temp_walls = copy.deepcopy(self.state.walls)
+                wall_idxs_to_delete, area, reachable = self.get_walls_to_delete(hunterX, hunterY, preyX, preyY, temp_walls)
+                if not reachable:
+                    wall_idxs_to_delete = [i for i in range(len(self.state.walls))]
+                if len(wall_idxs_to_delete) == 0:
+                    wall_idxs_to_delete = [random.randint(0, len(self.state.walls))]
+        else:
+            if len(self.state.walls) == self.state.maxWalls:
+                if random.randint(1, 100) <= 2:
+                    wall_idxs_to_delete = [random.randint(0, len(self.state.walls))]
+            else:
+                if random.randint(1, 100) <= 1:
+                    wall_type_to_add = random.randint(1, 4)
         return "{0} {1} {2} {3}".format(self.state.gameNum, self.state.tickNum, wall_type_to_add, " ".join(map(str, wall_idxs_to_delete)))
 
     def hunter_move_default(self):
