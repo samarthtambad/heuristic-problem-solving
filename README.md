@@ -8,3 +8,4 @@ A collection of code implemented for the Heuristic Problem Solving (CSCI-GA.2965
 4. [Ambulance Pickup](ambulance-pickup/README.md)
 5. [Random Lawn Mower](random-lawn-mower/README.md)
 6. [Evasion Problem](evasion/README.md)
+6. [Hidden Tunnel](hidden-tunnel/README.md)
