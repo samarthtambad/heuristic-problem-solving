@@ -295,10 +295,54 @@ class EvasionGame:
         p3 = np.array([px, py])
         return norm(np.cross(p2-p1, p1-p3))/norm(p2-p1)
 
+    def get_walls_to_delete(self, hunterX, hunterY, preyX, preyY, walls):
+        walls_touched = set()
+        visited = set()
+        q = deque()
+        q.append((hunterX, hunterY))
+        visited.add((hunterX, hunterY))
+        prey_reachable = False
+
+        while q:
+            size = len(q)
+            for _ in range(size):
+                x, y = q.popleft()
+                if x == preyX and y == preyY:
+                    prey_reachable = True
+                for i, j in [(1, 0), (1, 1), (1, -1), (0, 1), (0, -1), (-1, 0), (-1, 1), (-1, -1)]:
+                    x_new, y_new = x + i, y + j
+                    if x_new < 0 or x_new >= 300 or y_new < 0 or y_new >= 300:
+                        continue
+                    if (x_new, y_new) not in visited:
+                        is_valid = True
+                        for wall in walls:
+                            if wall.occupies(x_new, y_new):
+                                is_valid = False
+                                walls_touched.add(wall)
+                        if is_valid:
+                            q.append((x_new, y_new))
+                            visited.add((x_new, y_new))
+
+        deletable_walls = []
+        for i, wall in enumerate(walls):
+            if wall not in walls_touched:
+                deletable_walls.append(i)
+
+        return deletable_walls, len(visited), prey_reachable
+
     def hunter_move(self):
         wall_type_to_add = self.get_wall_type_to_add()
         wall_idxs_to_delete = []
-        return "{0} {1} {2} {3}".format(self.state.gameNum, self.state.tickNum, wall_type_to_add, " ".join(wall_idxs_to_delete))
+        if len(self.state.walls) == self.state.maxWalls:
+            preyX, preyY = self.state.preyXPos, self.state.preyYPos
+            hunterX, hunterY = self.state.hunterXPos, self.state.hunterYPos
+            temp_walls = copy.deepcopy(self.state.walls)
+            wall_idxs_to_delete, area, reachable = self.get_walls_to_delete(hunterX, hunterY, preyX, preyY, temp_walls)
+            if not reachable:
+                wall_idxs_to_delete = [i for i in range(len(self.state.walls))]
+            if len(wall_idxs_to_delete) == 0:
+                wall_idxs_to_delete = [random.randint(0, len(self.state.walls))]
+        return "{0} {1} {2} {3}".format(self.state.gameNum, self.state.tickNum, wall_type_to_add, " ".join(map(str, wall_idxs_to_delete)))
 
     def hunter_move_default(self):
         wall_type_to_add = 0
