@@ -1,11 +1,13 @@
 #!/usr/bin/python3
 
+import sys
+import math
+import copy
 import socket
 import random
-import sys
-import time
-import random
-import math
+from timeit import default_timer as timer
+from collections import deque
+from wall import HorizontalWall, VerticalWall, DiagonalWall, CounterDiagonalWall
 
 
 def dist(x1, y1, x2, y2):
@@ -56,12 +58,18 @@ class GameState:
         idx = 15
         self.walls = []
         for _ in range(self.numWalls):
-            if data[idx] == 0 or data[idx] == 1:
-                self.walls.append(data[idx:idx+4])
+            if data[idx] == 0:
+                self.walls.append(HorizontalWall(data[idx+1], data[idx+2], data[idx+3]))
                 idx = idx + 4
+            elif data[idx] == 1:
+                self.walls.append(VerticalWall(data[idx+1], data[idx+2], data[idx+3]))
+                idx = idx + 4
+            elif data[idx] == 2:
+                self.walls.append(DiagonalWall(data[idx+1], data[idx+2], data[idx+3], data[idx+4], data[idx+5]))
+                idx = idx + 6
             else:
-                self.walls.append(data[idx:idx+5])
-                idx = idx + 5
+                self.walls.append(CounterDiagonalWall(data[idx+1], data[idx+2], data[idx+3], data[idx+4], data[idx+5]))
+                idx = idx + 6
 
     def print(self):
         print("""
@@ -125,6 +133,45 @@ class EvasionGame:
             print("sending: {0} \n".format(to_send))
             self.sock_conn.sendall("{0} \n".format(to_send).encode('utf-8'))
 
+    def is_movable_pos(self):
+        pass
+
+    def bounded_area_and_prey_reachable(self, hunterX, hunterY, preyX, preyY, walls):
+        visited = set()
+        q = deque()
+        q.append((hunterX, hunterY))
+        visited.add((hunterX, hunterY))
+        prey_reachable = False
+
+        while q:
+            size = len(q)
+            for _ in range(size):
+                x, y = q.popleft()
+                if x == preyX and y == preyY:
+                    prey_reachable = True
+                for i, j in [(1, 0), (1, 1), (1, -1), (0, 1), (0, -1), (-1, 0), (-1, 1), (-1, -1)]:
+                    x_new, y_new = x + i, y + j
+                    if x_new < 0 or x_new >= 300 or y_new < 0 or y_new >= 300:
+                        continue
+                    if (x_new, y_new) not in visited and not any(wall.occupies(x_new, y_new) for wall in walls):
+                        q.append((x_new, y_new))
+                        visited.add((x_new, y_new))
+
+        return len(visited), prey_reachable
+
+    def get_wall(self, wall_type):
+        if wall_type == 0:
+
+            pass
+        elif wall_type == 1:
+            pass
+        elif wall_type == 2:
+            pass
+        else:
+            pass
+        return HorizontalWall()
+
+
     def move(self):
         if self.is_hunter:
             return self.hunter_move()
@@ -132,6 +179,38 @@ class EvasionGame:
         return self.prey_move()
 
     def hunter_move(self):
+        timer_start = timer()
+        wall_idxs_to_delete = []
+
+        possible_walls = []
+        if (self.state.hunterXVel, self.state.hunterYVel) in [(1, 1), (-1, -1)]:    # diagonal
+            possible_walls = [0, 1, 3]
+        elif (self.state.hunterXVel, self.state.hunterYVel) in [(-1, 1), (1, -1)]:  # counter-diagonal
+            possible_walls = [0, 1, 2]
+        elif self.state.hunterXVel == 0:    # vertical
+            possible_walls = [0, 2, 3]
+        else:   # horizontal
+            possible_walls = [1, 2, 3]
+
+        min_area, best_wall_type = float('inf'), -1
+        for wall_type in possible_walls:
+            new_wall = self.get_wall(wall_type)
+            temp_walls = copy.deepcopy(self.state.walls)
+            temp_walls.append(new_wall)
+            area, prey_reachable = self.bounded_area_and_prey_reachable(self.state.hunterXPos, self.state.hunterYPos,
+                                                                        self.state.preyXPos, self.state.preyYPos, temp_walls)
+            if prey_reachable:
+                if area < min_area:
+                    min_area = area
+                    best_wall_type = wall_type
+
+        timer_end = timer()
+        print("Time: {0} s".format(timer_end - timer_start))
+
+        return "{0} {1} {2} {3}".format(self.state.gameNum, self.state.tickNum, best_wall_type, " ".join(wall_idxs_to_delete))
+
+    def hunter_move_default(self):
+        timer_start = timer()
         wall_type_to_add = 0
         wall_idxs_to_delete = []
 
@@ -152,6 +231,9 @@ class EvasionGame:
             wall_type_to_add = 1
         else:
             wall_type_to_add = 0
+
+        timer_end = timer()
+        print("Time: {0} s".format(timer_end - timer_start))
 
         return "{0} {1} {2} {3}".format(self.state.gameNum, self.state.tickNum, wall_type_to_add, " ".join(wall_idxs_to_delete))
 
