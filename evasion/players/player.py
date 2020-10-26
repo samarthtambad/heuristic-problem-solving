@@ -5,6 +5,8 @@ import math
 import copy
 import socket
 import random
+import numpy as np
+from numpy.linalg import norm
 from timeit import default_timer as timer
 from collections import deque
 from wall import HorizontalWall, VerticalWall, DiagonalWall, CounterDiagonalWall
@@ -178,6 +180,8 @@ class EvasionGame:
                 x2, y2 = 299, 299+c
             return DiagonalWall(x1, x2, y1, y2, 1)
         c = x + y
+        x1, y1 = 0, 0
+        x2, y2 = 0, 0
         if c <= 299:
             x1, y1 = 0, c
             x2, y2 = c, 0
@@ -192,7 +196,7 @@ class EvasionGame:
 
         return self.prey_move()
 
-    def hunter_move(self):
+    def hunter_move_bfs(self):
         hunterX, hunterY = self.state.hunterXPos + self.state.hunterXVel, self.state.hunterYPos + self.state.hunterYVel
         preyX, preyY = self.state.preyXPos - self.state.hunterXVel, self.state.preyYPos - self.state.hunterYVel
         dist_threshold = 4
@@ -228,8 +232,79 @@ class EvasionGame:
 
         return "{0} {1} {2} {3}".format(self.state.gameNum, self.state.tickNum, best_wall_type, " ".join(wall_idxs_to_delete))
 
+    def get_wall_type_to_add(self):
+        preyX, preyY = self.state.preyXPos, self.state.preyYPos
+        hunterX, hunterY = self.state.hunterXPos, self.state.hunterYPos
+        next_hunterX, next_hunterY = self.state.hunterXPos + self.state.hunterXVel, self.state.hunterYPos + self.state.hunterYVel
+
+        # check diag
+        diag_dist = self.get_perpendicular_dist(2, hunterX, hunterY, preyX, preyY)
+        diag_dist_next = self.get_perpendicular_dist(2, next_hunterX, next_hunterY, preyX, preyY)
+        if diag_dist >= diag_dist_next + 1 and 3 <= diag_dist <= 5:
+            return 3
+
+        # check counter diag
+        cdiag_dist = self.get_perpendicular_dist(3, hunterX, hunterY, preyX, preyY)
+        cdiag_dist_next = self.get_perpendicular_dist(3, next_hunterX, next_hunterY, preyX, preyY)
+        if cdiag_dist >= cdiag_dist_next + 1 and 3 <= cdiag_dist <= 5:
+            return 4
+
+        # check horizontal
+        hdist = self.get_perpendicular_dist(0, hunterX, hunterY, preyX, preyY)
+        hdist_next = self.get_perpendicular_dist(0, next_hunterX, next_hunterY, preyX, preyY)
+        if hdist >= hdist_next + 1 and 2 <= hdist <= 4:
+            return 1
+
+        # check vertical
+        vdist = self.get_perpendicular_dist(1, hunterX, hunterY, preyX, preyY)
+        vdist_next = self.get_perpendicular_dist(1, next_hunterX, next_hunterY, preyX, preyY)
+        if vdist >= vdist_next + 1 and 2 <= vdist <= 4:
+            return 2
+
+        return 0
+
+    def get_extreme_points(self, wall_type, x, y):
+        x1, y1 = 0, 0
+        x2, y2 = 0, 0
+        if wall_type == 0:
+            return [[0, y], [299, y]]
+        elif wall_type == 1:
+            return [[x, 0], [x, 299]]
+        elif wall_type == 2:
+            c = y - x
+            x1, y1 = 0, 0
+            x2, y2 = 0, 0
+            if c > 0:
+                x1, y1 = 0, c
+                x2, y2 = 299 - c, 299
+            else:
+                x1, y1 = -c, 0
+                x2, y2 = 299, 299 + c
+            return [[x1, y1], [x2, y2]]
+        c = x + y
+        x1, y1 = 0, 0
+        x2, y2 = 0, 0
+        if c <= 299:
+            x1, y1 = 0, c
+            x2, y2 = c, 0
+        else:
+            x1, y1 = 299, c - 299
+            x2, y2 = c - 299, 299
+        return [[x1, y1], [x2, y2]]
+
+    def get_perpendicular_dist(self, wall_type, x, y, px, py):
+        extreme_points = self.get_extreme_points(wall_type, x, y)
+        p1 = np.array(extreme_points[0])
+        p2 = np.array(extreme_points[1])
+        p3 = np.array([px, py])
+        return norm(np.cross(p2-p1, p1-p3))/norm(p2-p1)
+
+    def hunter_move(self):
+        wall_type_to_add = self.get_wall_type_to_add()
+        wall_idxs_to_delete = []
+        return "{0} {1} {2} {3}".format(self.state.gameNum, self.state.tickNum, wall_type_to_add, " ".join(wall_idxs_to_delete))
+
     def hunter_move_default(self):
-        timer_start = timer()
         wall_type_to_add = 0
         wall_idxs_to_delete = []
 
@@ -250,9 +325,6 @@ class EvasionGame:
             wall_type_to_add = 1
         else:
             wall_type_to_add = 0
-
-        timer_end = timer()
-        print("Time: {0} s".format(timer_end - timer_start))
 
         return "{0} {1} {2} {3}".format(self.state.gameNum, self.state.tickNum, wall_type_to_add, " ".join(wall_idxs_to_delete))
 
