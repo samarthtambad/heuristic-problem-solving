@@ -32,6 +32,7 @@ class GameState:
         self.preyYPos = None
         self.numWalls = None
         self.walls = None
+        self.min_area = float('inf')
 
         self.__empty_wall_positions = []
 
@@ -160,17 +161,30 @@ class EvasionGame:
         return len(visited), prey_reachable
 
     def get_wall(self, wall_type):
+        x, y = self.state.hunterXPos, self.state.hunterYPos
         if wall_type == 0:
-
-            pass
+            return HorizontalWall(y, 0, 299)
         elif wall_type == 1:
-            pass
+            return VerticalWall(x, 0, 299)
         elif wall_type == 2:
-            pass
+            c = y - x
+            x1, y1 = 0, 0
+            x2, y2 = 0, 0
+            if c > 0:
+                x1, y1 = 0, c
+                x2, y2 = 299-c, 299
+            else:
+                x1, y1 = -c, 0
+                x2, y2 = 299, 299+c
+            return DiagonalWall(x1, x2, y1, y2, 1)
+        c = x + y
+        if c <= 299:
+            x1, y1 = 0, c
+            x2, y2 = c, 0
         else:
-            pass
-        return HorizontalWall()
-
+            x1, y1 = 299, c-299
+            x2, y2 = c-299, 299
+        return CounterDiagonalWall(x1, x2, y1, y2, 1)
 
     def move(self):
         if self.is_hunter:
@@ -179,9 +193,15 @@ class EvasionGame:
         return self.prey_move()
 
     def hunter_move(self):
-        timer_start = timer()
+        hunterX, hunterY = self.state.hunterXPos + self.state.hunterXVel, self.state.hunterYPos + self.state.hunterYVel
+        preyX, preyY = self.state.preyXPos - self.state.hunterXVel, self.state.preyYPos - self.state.hunterYVel
+        dist_threshold = 4
         wall_idxs_to_delete = []
 
+        if min(abs(hunterX - preyX), abs(hunterY - preyY)) > dist_threshold:
+            return "{0} {1} {2} {3}".format(self.state.gameNum, self.state.tickNum, 0, " ".join(wall_idxs_to_delete))
+
+        timer_start = timer()
         possible_walls = []
         if (self.state.hunterXVel, self.state.hunterYVel) in [(1, 1), (-1, -1)]:    # diagonal
             possible_walls = [0, 1, 3]
@@ -197,8 +217,7 @@ class EvasionGame:
             new_wall = self.get_wall(wall_type)
             temp_walls = copy.deepcopy(self.state.walls)
             temp_walls.append(new_wall)
-            area, prey_reachable = self.bounded_area_and_prey_reachable(self.state.hunterXPos, self.state.hunterYPos,
-                                                                        self.state.preyXPos, self.state.preyYPos, temp_walls)
+            area, prey_reachable = self.bounded_area_and_prey_reachable(hunterX, hunterY, preyX, preyY, temp_walls)
             if prey_reachable:
                 if area < min_area:
                     min_area = area
