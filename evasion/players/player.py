@@ -34,7 +34,6 @@ class GameState:
         self.preyYPos = None
         self.numWalls = None
         self.walls = None
-        self.min_area = float('inf')
 
         self.__empty_wall_positions = []
 
@@ -135,9 +134,6 @@ class EvasionGame:
         if to_send is not None:
             print("sending: {0} \n".format(to_send))
             self.sock_conn.sendall("{0} \n".format(to_send).encode('utf-8'))
-
-    def is_movable_pos(self):
-        pass
 
     def bounded_area_and_prey_reachable(self, hunterX, hunterY, preyX, preyY, walls):
         visited = set()
