@@ -25,5 +25,5 @@ Constraints
 1. 
 
 ## References
-1. [Architecture]()
+1. [Architecture](https://github.com/kk3039/DigThat)
 2. [Sample Game](https://cims.nyu.edu/drecco2016/games/DigThat/iframe.html)
