@@ -16,9 +16,9 @@ Each competition will consist of two games where each team plays the role of T o
 ```
 Constraints
 -----------
- <= n (size of the square grid) <= 
- n-1 <= k (max number of blocks in tunnel) <= 
- <= p (number of phases) <= 
+ 5 <= n (size of the square grid) <= 40
+ n-1 <= k (max number of blocks in tunnel) <= 3n
+ 2 <= p (number of phases) <= 10
 ```
 
 ## Approaches
