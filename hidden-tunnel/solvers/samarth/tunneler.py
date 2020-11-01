@@ -11,7 +11,7 @@ def build_tunnel(num_grid, f):
 
     def dfs(vertex, target, path):
         if len(path) > tunnel_length:
-            return None
+            return []
         if vertex == target and len(path) == tunnel_length:
             return path
         for adj_vertex in graph[vertex]:
@@ -34,7 +34,7 @@ def build_tunnel(num_grid, f):
                 if 1 <= new_r <= num_grid and 1 <= new_c <= num_grid:
                     graph[vertex].append((new_r, new_c))
 
-    path = dfs(start, target, set())
+    path = dfs(start, target, set(start))
     print(path)
     for i in range(len(path)-1):
         u, v = path[i], path[i+1]
