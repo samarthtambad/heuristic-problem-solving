@@ -79,13 +79,6 @@ class Detector:
             if vertex not in self.prev_probes:
                 self.prev_probes.add(vertex)
                 probes.append([vertex[0], vertex[1]])
-        # for i in range(3):
-        #     probes = []
-        #     x = math.ceil(random.random() * self.num_grid)
-        #     y = math.floor(random.random() * self.num_grid)
-        #     if [x, y] not in probes:
-        #         # for the ease of decoding, please avoid using python tuples
-        #         probes.append([x, y])
         return probes
 
     def update(self, probes, result):
@@ -101,7 +94,7 @@ class Detector:
                 for r, c in values:
                     self.tunnel.add(vertex)
                     self.tunnel.add((r, c))
-                    # self.tunnel_graph[vertex].append((r, c))
+                    self.tunnel_graph[vertex].append((r, c))
 
         for r, c in probes:
             if (r, c) not in self.tunnel:
@@ -111,10 +104,14 @@ class Detector:
 
     def make_guess(self):
         res = []
-        tunnel_verts = list(self.tunnel)
-        for i in range(len(tunnel_verts) - 1):
-            u, v = tunnel_verts[i], tunnel_verts[i+1]
-            res.append([[u[0], u[1]], [v[0], v[1]]])
+        visited = set()
+        for vertex, adj in self.tunnel_graph.items():
+            print(vertex, adj)
+            for next in adj:
+                if next not in visited:
+                    visited.add(next)
+                    res.append([[vertex[0], vertex[1]], [next[0], next[1]]])
+            visited.add(vertex)
 
         return res
 
