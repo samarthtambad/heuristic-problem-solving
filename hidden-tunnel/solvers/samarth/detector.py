@@ -99,12 +99,13 @@ class Detector:
             self.eliminated.add(vertex)
             if vertex_str in result:
                 for adj in result[vertex_str]:
-                    self.tunnel_graph[vertex].append(adj)
+                    self.tunnel_graph[vertex].append((adj[0], adj[1]))
 
     def make_guess(self):
         res = []
         visited = set()
         for vertex, adj in self.tunnel_graph.items():
+            print(vertex, adj)
             for next in adj:
                 if next not in visited:
                     visited.add(next)
