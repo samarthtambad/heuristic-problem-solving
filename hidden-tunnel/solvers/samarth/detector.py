@@ -4,7 +4,7 @@ import math
 import random
 import socket
 import sys
-
+from collections import defaultdict
 
 class Detector:
     def __init__(self, num_grid, num_phase, tunnel_length, port):
@@ -14,6 +14,10 @@ class Detector:
         self.tunnel_length = tunnel_length
         self.port = port
         self.srv_conn = None
+        self.graph = defaultdict(list)
+        self.prev_probes = set()
+        self.eliminated = set()
+        self.tunnel_graph = defaultdict(list)
 
     def send_data(self, data):
         self.srv_conn.sendall(json.dumps(data).encode())
@@ -40,6 +44,16 @@ class Detector:
         self.num_phase = res['remaining_phases']
         self.tunnel_length = res['tunnel_length']
 
+        # create graph
+        for r in range(1, self.num_grid + 1):
+            for c in range(1, self.num_grid + 1):
+                vertex = (r, c)
+                for i, j in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                    new_r, new_c = r + i, c + j
+                    if 1 <= new_r <= self.num_grid and 1 <= new_c <= self.num_grid:
+                        self.graph[vertex].append((new_r, new_c))
+        print(self.graph)
+
         # probe phases
         for i in range(self.num_phase - 1):
             payload = {'phase': 'probe', 'probes': []}
@@ -49,6 +63,7 @@ class Detector:
             self.send_data(payload)
             res = self.receive_data()
             print(res)  # gets probing report
+            self.update(probes, res)
 
         # guess phase
         guess = self.make_guess()
@@ -58,17 +73,37 @@ class Detector:
         self.srv_conn.close()
 
     def get_probes(self):
-        for i in range(3):
-            probes = []
-            x = math.ceil(random.random() * self.num_grid)
-            y = math.floor(random.random() * self.num_grid)
-            if [x, y] not in probes:
-                # for the ease of decoding, please avoid using python tuples
-                probes.append([x, y])
+        probes = []
+        for vertex in self.graph.keys():
+            if vertex not in self.prev_probes:
+                self.prev_probes.add(vertex)
+                probes.append([vertex[0], vertex[1]])
+        # for i in range(3):
+        #     probes = []
+        #     x = math.ceil(random.random() * self.num_grid)
+        #     y = math.floor(random.random() * self.num_grid)
+        #     if [x, y] not in probes:
+        #         # for the ease of decoding, please avoid using python tuples
+        #         probes.append([x, y])
         return probes
 
+    def update(self, probes, response):
+        for vertex in probes:
+            self.eliminated.add(vertex)
+            if vertex in response:
+                for adj in response[vertex]:
+                    self.tunnel_graph[vertex].append(adj)
+
     def make_guess(self):
-        return [[1, 3], [2, 3]], [[2, 3], [3, 3]], [[3, 3], [4, 3]], [[4, 3], [5, 3]]
+        res = []
+        visited = set()
+        for vertex, adj in self.tunnel_graph.items():
+            for next in adj:
+                if next not in visited:
+                    visited.add(next)
+                    res.append([[vertex[0], vertex[1]], [next[0], next[1]]])
+
+        return res
 
 
 if __name__ == '__main__':
