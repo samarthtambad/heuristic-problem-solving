@@ -90,9 +90,10 @@ class Detector:
     def update(self, probes, response):
         for r, c in probes:
             vertex = (r, c)
+            vertex_str = "[{0},{1}]".format(r, c)
             self.eliminated.add(vertex)
-            if vertex in response:
-                for adj in response[vertex]:
+            if vertex_str in response:
+                for adj in response[vertex_str]:
                     self.tunnel_graph[vertex].append(adj)
 
     def make_guess(self):
