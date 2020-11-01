@@ -18,6 +18,7 @@ class Detector:
         self.prev_probes = set()
         self.eliminated = set()
         self.tunnel_graph = defaultdict(list)
+        self.tunnel = set()
 
     def send_data(self, data):
         self.srv_conn.sendall(json.dumps(data).encode())
@@ -98,24 +99,21 @@ class Detector:
                 v = list(map(int, key[1:-1].split(",")))
                 vertex = (v[0], v[1])
                 for r, c in values:
-                    self.tunnel_graph[vertex].append((r, c))
+                    self.tunnel.add(vertex)
+                    self.tunnel.add((r, c))
+                    # self.tunnel_graph[vertex].append((r, c))
 
         for r, c in probes:
-            if (r, c) not in self.tunnel_graph:
+            if (r, c) not in self.tunnel:
                 self.eliminated.add((r, c))
 
         print(self.tunnel_graph)
 
     def make_guess(self):
         res = []
-        visited = set()
-        for vertex, adj in self.tunnel_graph.items():
-            print(vertex, adj)
-            for next in adj:
-                if next not in visited:
-                    visited.add(next)
-                    res.append([[vertex[0], vertex[1]], [next[0], next[1]]])
-            visited.add(vertex)
+        for i in range(len(self.tunnel) - 1):
+            u, v = self.tunnel[i], self.tunnel[i+1]
+            res.append([u[0], u[1], v[0], v[1]])
 
         return res
 
