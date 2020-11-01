@@ -115,6 +115,7 @@ class Detector:
                 if next not in visited:
                     visited.add(next)
                     res.append([[vertex[0], vertex[1]], [next[0], next[1]]])
+            visited.add(vertex)
 
         return res
 
