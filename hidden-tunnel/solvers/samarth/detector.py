@@ -103,16 +103,23 @@ class Detector:
         print(self.tunnel_graph)
 
     def make_guess(self):
+
+        def dfs(u):
+            if u not in visited:
+                visited.add(u)
+                for v in self.tunnel_graph[u]:
+                    if v not in visited:
+                        res.append([[u[0], u[1]], [v[0], v[1]]])
+                        dfs(v)
+
         res = []
         visited = set()
+        extremities = []
         for vertex, adj in self.tunnel_graph.items():
-            print(vertex, adj)
-            for next in adj:
-                if next not in visited:
-                    visited.add(next)
-                    res.append([[vertex[0], vertex[1]], [next[0], next[1]]])
-            visited.add(vertex)
+            if len(adj) == 1:
+                extremities.append(vertex)
 
+        dfs(extremities[0])
         return res
 
 
