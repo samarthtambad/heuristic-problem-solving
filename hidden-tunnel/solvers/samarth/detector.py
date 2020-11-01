@@ -114,7 +114,7 @@ class Detector:
         tunnel_verts = list(self.tunnel)
         for i in range(len(tunnel_verts) - 1):
             u, v = tunnel_verts[i], tunnel_verts[i+1]
-            res.append([u[0], u[1], v[0], v[1]])
+            res.append([[u[0], u[1]], [v[0], v[1]]])
 
         return res
 
