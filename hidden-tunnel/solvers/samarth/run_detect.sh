@@ -1,1 +1,1 @@
-python3 detector_example.py
+python3 detector.py
