@@ -87,19 +87,24 @@ class Detector:
         #         probes.append([x, y])
         return probes
 
-    def update(self, probes, response):
-        if len(response) == 0:
+    def update(self, probes, result):
+        if len(result) == 0:
             return
 
-        result = response[0]
         print(result)
-        for r, c in probes:
-            vertex = (r, c)
-            vertex_str = "[{0},{1}]".format(r, c)
-            self.eliminated.add(vertex)
-            if vertex_str in result:
-                for adj in result[vertex_str]:
-                    self.tunnel_graph[vertex].append((adj[0], adj[1]))
+
+        for res_dict in result:
+            for key, values in res_dict.items():
+                v = list(map(int, key[1:-1].split(",")))
+                vertex = (v[0], v[1])
+                for adj in values:
+                    self.tunnel_graph[vertex].append(adj)
+
+        for vertex in probes:
+            if vertex not in self.tunnel_graph:
+                self.eliminated.add(vertex)
+
+        print(self.tunnel_graph)
 
     def make_guess(self):
         res = []
