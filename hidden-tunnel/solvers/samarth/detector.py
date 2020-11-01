@@ -63,7 +63,7 @@ class Detector:
             self.send_data(payload)
             res = self.receive_data()
             print(res)  # gets probing report
-            self.update(probes, res)
+            self.update(probes, res['result'][0])
 
         # guess phase
         guess = self.make_guess()
@@ -88,7 +88,7 @@ class Detector:
         return probes
 
     def update(self, probes, response):
-        response = response[0]
+        print(response)
         for r, c in probes:
             vertex = (r, c)
             vertex_str = "[{0},{1}]".format(r, c)
