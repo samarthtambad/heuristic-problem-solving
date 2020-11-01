@@ -5,27 +5,69 @@ import random
 import socket
 import sys
 
-PLAYER_NAME = 'example'
-DATA_SIZE = 4096
 
+class Detector:
+    def __init__(self, num_grid, num_phase, tunnel_length, port):
+        self.player_name = 'remember_the_name'
+        self.num_grid = num_grid
+        self.num_phase = num_phase
+        self.tunnel_length = tunnel_length
+        self.port = port
+        self.srv_conn = None
 
-def establish_connection(port):
-    HOST = 'localhost'
-    PORT = port
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((HOST, PORT))
-    return s
+    def send_data(self, data):
+        self.srv_conn.sendall(json.dumps(data).encode())
 
+    def receive_data(self):
+        DATA_SIZE = 4096
+        while True:
+            data = self.srv_conn.recv(DATA_SIZE).decode()
+            if data:
+                return json.loads(data)
 
-def receive_data(conn):
-    while True:
-        data = conn.recv(DATA_SIZE).decode()
-        if data:
-            return json.loads(data)
+    def run_detector(self):
+        # establish connection
+        self.srv_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.srv_conn.connect('localhost', self.port)
 
+        # send team name
+        data = {'player_name': self.player_name}
+        self.send_data(data)
 
-def send_data(conn, data):
-    conn.sendall(json.dumps(data).encode())
+        # receive initial data
+        res = self.receive_data()
+        self.num_grid = res['grid']
+        self.num_phase = res['remaining_phases']
+        self.tunnel_length = res['tunnel_length']
+
+        # probe phases
+        for _ in range(self.num_phase - 1):
+            payload = {'phase': 'probe', 'probes': []}
+            probes = self.get_probes()
+            payload['probes'] = probes
+            print("payload: {}".format(payload))
+            self.send_data(payload)
+            res = self.receive_data()
+            print(res)  # gets probing report
+
+        # guess phase
+        guess = self.make_guess()
+        payload = {'phase': 'guess', 'answer': guess}
+        self.send_data(payload)
+        self.srv_conn.close()
+
+    def get_probes(self):
+        for i in range(3):
+            probes = []
+            x = math.ceil(random.random() * (num_grid))
+            y = math.floor(random.random() * (num_grid))
+            if [x, y] not in probes:
+                # for the ease of decoding, please avoid using python tuples
+                probes.append([x, y])
+        return probes
+
+    def make_guess(self):
+        return [[1, 3], [2, 3]], [[2, 3], [3, 3]], [[3, 3], [4, 3]], [[4, 3], [5, 3]]
 
 
 if __name__ == '__main__':
@@ -44,31 +86,5 @@ if __name__ == '__main__':
         else:
             assert False, 'unhandled option'
 
-    s = establish_connection(port)
-    try:
-        # Please fill in your team name here
-        send_data(s, {'player_name': PLAYER_NAME})
-        res = receive_data(s)
-        num_grid = res['grid']
-        num_phase = res['remaining_phases']
-        tunnel_length = res['tunnel_length']
-        while True:
-            payload = {'phase': 'probe', 'probes': []}
-            for i in range(3):
-                x = math.ceil(random.random() * (num_grid))
-                y = math.floor(random.random() * (num_grid))
-                if [x, y] not in payload['probes']:
-                    # for the ease of decoding, please avoid using python tuples
-                    payload['probes'].append([x, y])
-            print("payload: {}".format(payload))
-            send_data(s, payload)
-            res = receive_data(s)
-            print(res)  # gets probing report
-            if res['next_phase'] == 'guess':
-                break
-        payload = {'phase': 'guess', 'answer': [
-            [[1, 3], [2, 3]], [[2, 3], [3, 3]], [[3, 3], [4, 3]], [[4, 3], [5, 3]]]}
-        send_data(s, payload)
-        s.close()
-    except KeyboardInterrupt:
-        s.close()
+    d = Detector(num_grid, num_phase, tunnel_length, port)
+    d.run_detector()
