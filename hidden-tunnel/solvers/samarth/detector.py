@@ -28,7 +28,7 @@ class Detector:
     def run_detector(self):
         # establish connection
         self.srv_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.srv_conn.connect('localhost', self.port)
+        self.srv_conn.connect(('localhost', self.port))
 
         # send team name
         data = {'player_name': self.player_name}
