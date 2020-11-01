@@ -97,12 +97,12 @@ class Detector:
             for key, values in res_dict.items():
                 v = list(map(int, key[1:-1].split(",")))
                 vertex = (v[0], v[1])
-                for adj in values:
-                    self.tunnel_graph[vertex].append(adj)
+                for r, c in values:
+                    self.tunnel_graph[vertex].append((r, c))
 
-        for vertex in probes:
-            if vertex not in self.tunnel_graph:
-                self.eliminated.add(vertex)
+        for r, c in probes:
+            if (r, c) not in self.tunnel_graph:
+                self.eliminated.add((r, c))
 
         print(self.tunnel_graph)
 
