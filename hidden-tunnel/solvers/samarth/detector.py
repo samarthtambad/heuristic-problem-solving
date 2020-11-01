@@ -41,11 +41,11 @@ class Detector:
         self.tunnel_length = res['tunnel_length']
 
         # probe phases
-        for _ in range(self.num_phase - 1):
+        for i in range(self.num_phase - 1):
             payload = {'phase': 'probe', 'probes': []}
             probes = self.get_probes()
             payload['probes'] = probes
-            print("payload: {}".format(payload))
+            print("Probe {}, payload: {}".format(i+1, payload))
             self.send_data(payload)
             res = self.receive_data()
             print(res)  # gets probing report
@@ -53,6 +53,7 @@ class Detector:
         # guess phase
         guess = self.make_guess()
         payload = {'phase': 'guess', 'answer': guess}
+        print("Guess, payload: {}".format(payload))
         self.send_data(payload)
         self.srv_conn.close()
 
