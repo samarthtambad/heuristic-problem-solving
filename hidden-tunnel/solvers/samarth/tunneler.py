@@ -5,7 +5,7 @@ import random
 from collections import defaultdict
 
 
-def build_tunnel(num_grid, f):
+def build_tunnel(num_grid, tunnel_length, f):
 
     def dfs(depth, vertex, target, path):
         nonlocal tunnel_verts
@@ -33,7 +33,7 @@ def build_tunnel(num_grid, f):
                     graph[vertex].append((new_r, new_c))
 
     # try to create tunnel of random length
-    min_tunnel_length, max_tunnel_length = num_grid - 1, 3 * num_grid
+    min_tunnel_length, max_tunnel_length = num_grid - 1, min(tunnel_length, 3 * num_grid)
     print("Start: {0}, Target: {1}".format(start, target))
     tunnel_verts = []
     while True:
@@ -64,5 +64,5 @@ if __name__ == "__main__":
             assert False, "unhandled option"
 
     f = open("tunnel", "w")
-    build_tunnel(num_grid, f)
+    build_tunnel(num_grid, tunnel_length, f)
     f.close()
