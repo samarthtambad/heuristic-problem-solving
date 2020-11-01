@@ -88,7 +88,8 @@ class Detector:
         return probes
 
     def update(self, probes, response):
-        for vertex in probes:
+        for r, c in probes:
+            vertex = (r, c)
             self.eliminated.add(vertex)
             if vertex in response:
                 for adj in response[vertex]:
