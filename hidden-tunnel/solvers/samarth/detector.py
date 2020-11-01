@@ -88,6 +88,7 @@ class Detector:
         return probes
 
     def update(self, probes, response):
+        response = response[0]
         for r, c in probes:
             vertex = (r, c)
             vertex_str = "[{0},{1}]".format(r, c)
