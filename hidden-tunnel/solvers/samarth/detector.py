@@ -60,8 +60,8 @@ class Detector:
     def get_probes(self):
         for i in range(3):
             probes = []
-            x = math.ceil(random.random() * (num_grid))
-            y = math.floor(random.random() * (num_grid))
+            x = math.ceil(random.random() * self.num_grid)
+            y = math.floor(random.random() * self.num_grid)
             if [x, y] not in probes:
                 # for the ease of decoding, please avoid using python tuples
                 probes.append([x, y])
