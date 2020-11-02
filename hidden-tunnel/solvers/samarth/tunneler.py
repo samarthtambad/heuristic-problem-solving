@@ -36,8 +36,38 @@ class DisjointSet:
         self.parent[a] = self.find(self.parent[a])
         return self.parent[a]
 
+def dist(r1, c1, r2, c2):
+    return abs(r1-r2) + abs(c1-c2)
+
 
 def build_tunnel(num_grid, tunnel_length, f):
+    row, col = 1, random.randint(1, num_grid)
+    cur_len = 0
+    path = []
+
+    while row <= num_grid:
+        if row % 2 == 0:
+            while col < num_grid and (tunnel_length - cur_len) > (num_grid - row):
+                path.append((row, col))
+                cur_len += 1
+                col += 1
+            # path.append((row, col))
+            row += 1
+        else:
+            while col > 1 and (tunnel_length - cur_len) > (num_grid - row):
+                path.append((row, col))
+                cur_len += 1
+                col -= 1
+            # path.append((row, col))
+            row += 1
+
+    print("Length of tunnel: {0}, Path: {1}".format(len(path), path))
+    for i in range(len(path) - 1):
+        u, v = path[i], path[i + 1]
+        f.write("{},{} {},{}\n".format(u[0], u[1], v[0], v[1]))
+
+
+def build_tunnel_mst(num_grid, tunnel_length, f):
 
     def dfs(vertex, path):
         nonlocal tunnel_verts, mst
@@ -65,7 +95,9 @@ def build_tunnel(num_grid, tunnel_length, f):
     # generate random MST
     mst = defaultdict(list)
     ds = DisjointSet(num_grid)
-    for u in graph.keys():
+    vertices = list(graph.keys())
+    random.shuffle(vertices)
+    for u in vertices:
         adj_list = graph[u]
         random.shuffle(adj_list)
         for v in adj_list:
