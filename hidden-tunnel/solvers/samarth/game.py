@@ -275,6 +275,7 @@ def receive_data(conn):
     while True:
         data = conn.recv(DATA_SIZE).decode()
         if data:
+            print(data)
             return json.loads(data)
 
 
