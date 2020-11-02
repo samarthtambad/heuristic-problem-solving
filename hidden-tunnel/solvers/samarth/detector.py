@@ -6,6 +6,7 @@ import socket
 import sys
 from collections import defaultdict, deque
 
+DATA_SIZE = 8192  # 4096
 
 class Detector:
     def __init__(self, num_grid, num_phase, tunnel_length, port):
@@ -27,7 +28,6 @@ class Detector:
         self.srv_conn.sendall(json.dumps(data).encode())
 
     def receive_data(self):
-        DATA_SIZE = 8192  # 4096
         while True:
             data = self.srv_conn.recv(DATA_SIZE).decode()
             if data:
