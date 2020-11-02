@@ -31,6 +31,7 @@ class Detector:
         while True:
             data = self.srv_conn.recv(DATA_SIZE).decode()
             if data:
+                print(data)
                 return json.loads(data)
 
     def run_detector(self):
