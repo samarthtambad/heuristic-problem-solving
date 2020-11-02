@@ -62,10 +62,12 @@ def build_tunnel(num_grid, tunnel_length, f):
                 if 1 <= new_r <= num_grid and 1 <= new_c <= num_grid:
                     graph[vertex].append((new_r, new_c))
 
-    # generate MST
+    # generate random MST
     mst = defaultdict(list)
     ds = DisjointSet(num_grid)
-    for u, adj_list in graph.items():
+    for u in graph.keys():
+        adj_list = graph[u]
+        random.shuffle(adj_list)
         for v in adj_list:
             if ds.find(u) != ds.find(v):
                 ds.union(u, v)
