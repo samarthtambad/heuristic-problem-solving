@@ -84,7 +84,7 @@ class Detector:
                 probes.append([vertex[0], vertex[1]])
         return probes
 
-    def get_probes(self, probe_num):
+    def get_probes_alternate(self, probe_num):
         if probe_num == self.num_phase - 1:     # last probe phase
             self.eliminate_vertices()
             return self.get_probes_all()
@@ -103,6 +103,24 @@ class Detector:
                     no_probe.add(vertex)
                     for adj in self.graph[vertex]:
                         no_probe.add(adj)
+        return probes
+
+    def get_probes(self, probe_num):
+        probe_rows = set()
+        probe_rows.add(1)
+        probe_rows.add(self.num_grid)
+
+        for r in range(2, self.num_grid):
+            if r % 2 == 1:
+                probe_rows.add(r)
+
+        probes = []
+        if probe_num == 1: 
+            for vertex in self.graph.keys():
+                if vertex[0] in probe_rows:
+                    self.prev_probes.add(vertex)
+                    probes.append([vertex[0], vertex[1]])
+        
         return probes
 
     def eliminate_vertices(self):
@@ -161,22 +179,62 @@ class Detector:
 
     def make_guess(self):
 
-        def dfs(u):
+        def dfs2(u):
             if u not in visited:
                 visited.add(u)
                 for v in self.tunnel_graph[u]:
                     if v not in visited:
                         res.append([[u[0], u[1]], [v[0], v[1]]])
                         dfs(v)
+        
+        def dfs(u, path):
+            nonlocal result_path, target
+            # print(path)
+            if u == target:
+                result_path = path
+                print(path)
+                return True
 
-        res = []
-        visited = set()
+            if u not in visited:
+                visited.add(u)
+                if u in self.tunnel_graph:
+                    for v in self.tunnel_graph[u]:
+                        if v not in visited:
+                            path.append(v)
+                            if dfs(v, path): return True
+                            path.pop()
+
+                elif u not in self.eliminated:
+                    for v in self.graph[u]:
+                        if v not in visited and v not in self.eliminated:
+                            if v not in self.tunnel_graph:
+                                path.append(v)
+                                if dfs(v, path): return True
+                                path.pop()
+                            else:
+                                if u in self.tunnel_graph[v]:
+                                    path.append(v)
+                                    if dfs(v, path): return True
+                                    path.pop()
+        
         extremities = []
         for vertex, adj in self.tunnel_graph.items():
             if len(adj) == 1:
                 extremities.append(vertex)
 
-        dfs(extremities[0])
+        result_path = []
+        visited = set()
+        start, target = extremities[0], extremities[1]
+        dfs(start, [start])
+        print(extremities)
+        print("Start: {0}, Target: {1}".format(start, target))
+        print("Guess Path: {0}".format(result_path))
+
+        res = []
+        for i in range(len(result_path) - 1):
+            u, v = result_path[i], result_path[i + 1]
+            res.append([[u[0], u[1]], [v[0], v[1]]])
+
         return res
 
 
