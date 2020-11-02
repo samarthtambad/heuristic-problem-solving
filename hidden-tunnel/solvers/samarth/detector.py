@@ -63,7 +63,7 @@ class Detector:
             payload = {'phase': 'probe', 'probes': []}
             probes = self.get_probes(i+1)
             payload['probes'] = probes
-            print("Probe {}, payload: {}\n".format(i+1, payload))
+            print("\nProbe {}, payload: {}".format(i+1, payload))
             self.send_data(payload)
             res = self.receive_data()
             print(res)  # gets probing report
@@ -72,7 +72,7 @@ class Detector:
         # guess phase
         guess = self.make_guess()
         payload = {'phase': 'guess', 'answer': guess}
-        print("Guess, payload: {}\n".format(payload))
+        print("\nGuess, payload: {}".format(payload))
         self.send_data(payload)
         self.srv_conn.close()
 
@@ -86,6 +86,7 @@ class Detector:
 
     def get_probes(self, probe_num):
         if probe_num == self.num_phase - 1:     # last probe phase
+            self.eliminate_vertices()
             return self.get_probes_all()
 
         probes = []
