@@ -144,7 +144,8 @@ class Detector:
                 for r, c in values:
                     self.tunnel.add(vertex)
                     self.tunnel.add((r, c))
-                    self.tunnel_graph[vertex].append((r, c))
+                    if (r, c) not in self.tunnel_graph[vertex]:
+                        self.tunnel_graph[vertex].append((r, c))
 
         for r, c in probes:
             if (r, c) not in self.tunnel:
