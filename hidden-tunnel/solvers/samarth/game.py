@@ -6,7 +6,7 @@ import signal
 import time
 
 TIME_LIMIT = 120
-DATA_SIZE = 4096
+DATA_SIZE = 8192  # 4096
 PROBE_PHASE = 'probe'
 GUESS_PHASE = 'guess'
 

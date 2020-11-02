@@ -27,7 +27,7 @@ class Detector:
         self.srv_conn.sendall(json.dumps(data).encode())
 
     def receive_data(self):
-        DATA_SIZE = 4096
+        DATA_SIZE = 8192  # 4096
         while True:
             data = self.srv_conn.recv(DATA_SIZE).decode()
             if data:
