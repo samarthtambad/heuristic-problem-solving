@@ -36,6 +36,7 @@ class DisjointSet:
         self.parent[a] = self.find(self.parent[a])
         return self.parent[a]
 
+
 def dist(r1, c1, r2, c2):
     return abs(r1-r2) + abs(c1-c2)
 
@@ -47,19 +48,23 @@ def build_tunnel(num_grid, tunnel_length, f):
 
     while row <= num_grid:
         if row % 2 == 0:
+            l = cur_len
             while col < num_grid and (tunnel_length - cur_len) > (num_grid - row):
                 path.append((row, col))
                 cur_len += 1
                 col += 1
-            # path.append((row, col))
+            if cur_len == l:
+                path.append((row, col))
             col -= 1
             row += 1
         else:
+            l = cur_len
             while col > 1 and (tunnel_length - cur_len) > (num_grid - row):
                 path.append((row, col))
                 cur_len += 1
                 col -= 1
-            # path.append((row, col))
+            if cur_len == l:
+                path.append((row, col))
             col += 1
             row += 1
 
