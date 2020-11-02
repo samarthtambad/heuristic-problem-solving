@@ -4,7 +4,8 @@ import math
 import random
 import socket
 import sys
-from collections import defaultdict
+from collections import defaultdict, deque
+
 
 class Detector:
     def __init__(self, num_grid, num_phase, tunnel_length, port):
@@ -19,6 +20,8 @@ class Detector:
         self.eliminated = set()
         self.tunnel_graph = defaultdict(list)
         self.tunnel = set()
+        self.start_vertices = []
+        self.end_vertices = []
 
     def send_data(self, data):
         self.srv_conn.sendall(json.dumps(data).encode())
@@ -58,7 +61,7 @@ class Detector:
         # probe phases
         for i in range(self.num_phase - 1):
             payload = {'phase': 'probe', 'probes': []}
-            probes = self.get_probes()
+            probes = self.get_probes(i+1)
             payload['probes'] = probes
             print("Probe {}, payload: {}".format(i+1, payload))
             self.send_data(payload)
@@ -73,13 +76,56 @@ class Detector:
         self.send_data(payload)
         self.srv_conn.close()
 
-    def get_probes(self):
+    def get_probes_all(self):
         probes = []
         for vertex in self.graph.keys():
-            if vertex not in self.prev_probes:
+            if vertex not in self.prev_probes and vertex not in self.eliminated:
                 self.prev_probes.add(vertex)
                 probes.append([vertex[0], vertex[1]])
         return probes
+
+    def get_probes(self, probe_num):
+        if probe_num == self.num_phase - 1:     # last probe phase
+            return self.get_probes_all()
+
+        probes = []
+        if probe_num == 1:  # probe end rows
+            for r, c in self.graph.keys():
+                if r == 1 or r == self.num_grid:
+                    probes.append([r, c])
+        else:
+            self.eliminate_vertices()
+            no_probe = set()
+            for vertex in self.graph.keys():
+                if vertex not in no_probe:
+                    probes.append([vertex[0], vertex[1]])
+                    no_probe.add(vertex)
+                    for adj in self.graph[vertex]:
+                        no_probe.add(adj)
+        return probes
+
+    def eliminate_vertices(self):
+        q = deque()
+        visited = set()
+        start = self.start_vertices[0]
+        q.append(start)
+        visited.add(start)
+
+        # BFS to find vertices that can be reached
+        while q:
+            size = len(q)
+            for _ in range(size):
+                u = q.popleft()
+                for v in self.graph[u]:
+                    if v not in self.eliminated:
+                        if v not in visited:
+                            visited.add(v)
+                            q.append(v)
+
+        # eliminate vertices that can't be reached
+        for vertex in self.graph.keys():
+            if vertex not in visited:
+                self.eliminated.add(vertex)
 
     def update(self, probes, result):
         if len(result) == 0:
@@ -91,6 +137,10 @@ class Detector:
             for key, values in res_dict.items():
                 v = list(map(int, key[1:-1].split(",")))
                 vertex = (v[0], v[1])
+                if vertex[0] == 1:
+                    self.start_vertices.append(vertex)
+                if vertex[0] == self.num_grid:
+                    self.end_vertices.append(vertex)
                 for r, c in values:
                     self.tunnel.add(vertex)
                     self.tunnel.add((r, c))
