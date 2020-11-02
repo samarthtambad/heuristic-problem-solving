@@ -56,14 +56,14 @@ class Detector:
                     new_r, new_c = r + i, c + j
                     if 1 <= new_r <= self.num_grid and 1 <= new_c <= self.num_grid:
                         self.graph[vertex].append((new_r, new_c))
-        print(self.graph)
+        # print(self.graph)
 
         # probe phases
         for i in range(self.num_phase - 1):
             payload = {'phase': 'probe', 'probes': []}
             probes = self.get_probes(i+1)
             payload['probes'] = probes
-            print("Probe {}, payload: {}".format(i+1, payload))
+            print("Probe {}, payload: {}\n".format(i+1, payload))
             self.send_data(payload)
             res = self.receive_data()
             print(res)  # gets probing report
@@ -72,7 +72,7 @@ class Detector:
         # guess phase
         guess = self.make_guess()
         payload = {'phase': 'guess', 'answer': guess}
-        print("Guess, payload: {}".format(payload))
+        print("Guess, payload: {}\n".format(payload))
         self.send_data(payload)
         self.srv_conn.close()
 
@@ -123,15 +123,17 @@ class Detector:
                             q.append(v)
 
         # eliminate vertices that can't be reached
+        elim = []
         for vertex in self.graph.keys():
             if vertex not in visited:
+                elim.append(vertex)
                 self.eliminated.add(vertex)
+
+        print("Eliminated: {0}".format(elim))
 
     def update(self, probes, result):
         if len(result) == 0:
             return
-
-        print(result)
 
         for res_dict in result:
             for key, values in res_dict.items():
@@ -147,11 +149,14 @@ class Detector:
                     if (r, c) not in self.tunnel_graph[vertex]:
                         self.tunnel_graph[vertex].append((r, c))
 
+        elim = []
         for r, c in probes:
             if (r, c) not in self.tunnel:
+                elim.append((r, c))
                 self.eliminated.add((r, c))
 
-        print(self.tunnel_graph)
+        print("Tunnel Graph: {0}".format(self.tunnel_graph))
+        print("Eliminated: {0}".format(elim))
 
     def make_guess(self):
 
