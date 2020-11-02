@@ -52,6 +52,7 @@ def build_tunnel(num_grid, tunnel_length, f):
                 cur_len += 1
                 col += 1
             # path.append((row, col))
+            col -= 1
             row += 1
         else:
             while col > 1 and (tunnel_length - cur_len) > (num_grid - row):
@@ -59,6 +60,7 @@ def build_tunnel(num_grid, tunnel_length, f):
                 cur_len += 1
                 col -= 1
             # path.append((row, col))
+            col += 1
             row += 1
 
     print("Length of tunnel: {0}, Path: {1}".format(len(path), path))
