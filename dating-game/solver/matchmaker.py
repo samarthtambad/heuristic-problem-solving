@@ -31,15 +31,17 @@ class MatchMaker:
         # send 20 guesses
         for i in range(20):
             #Guess Weights
-            guess_weights = np.random.random(self.num_attr) 
+            guess_weights = self.guess_weights()
             self.srv_conn.sendall(floats_to_msg4(guess_weights))
-
             data = self.srv_conn.recv(8).decode('utf-8')
             assert data[-1] == '\n'
             score = float(data[:-1])
             print('Received a score = %f for i = %d ' % (score, i))
         
         self.srv_conn.close()
+
+    def guess_weights(self):
+        return np.random.random(self.num_attr) 
 
 
 if __name__ == '__main__':

@@ -33,9 +33,12 @@ class Person:
             data = self.srv_conn.recv(8*self.num_attr).decode("utf-8")
             print('%d: Received guess = %r' % (i, data))
             assert data[-1] == '\n'
-            self.srv_conn.send(floats_to_msg2(initial_weights))
+            self.srv_conn.send(floats_to_msg2(self.get_modified_weights(initial_weights)))
 
         self.srv_conn.close()
+
+    def get_modified_weights(self, initial_weights):
+        return initial_weights
 
     def get_valid_prob(self, n):
         alpha = np.random.random(n)
