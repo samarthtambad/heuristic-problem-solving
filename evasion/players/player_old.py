@@ -34,8 +34,6 @@ class GameState:
         self.preyYPos = None
         self.numWalls = None
         self.walls = None
-        self.initial_state = 0
-        self.prev_wall_add_tick = 0
 
         self.__empty_wall_positions = []
 
@@ -332,7 +330,7 @@ class EvasionGame:
 
         return deletable_walls, len(visited), prey_reachable
 
-    def hunter_move_old(self):
+    def hunter_move(self):
         wall_type_to_add = self.get_wall_type_to_add()
         wall_idxs_to_delete = []
         if self.state.maxWalls >= 5:
@@ -353,65 +351,6 @@ class EvasionGame:
                 if random.randint(1, 100) <= 1:
                     wall_type_to_add = random.randint(1, 4)
         return "{0} {1} {2} {3}".format(self.state.gameNum, self.state.tickNum, wall_type_to_add, " ".join(map(str, wall_idxs_to_delete)))
-
-    def hunter_move(self):
-        wall_type_to_add, wall_idxs_to_delete = 0, []
-        preyX, preyY = self.state.preyXPos, self.state.preyYPos
-        hunterX, hunterY = self.state.hunterXPos, self.state.hunterYPos
-        distX, distY = abs(hunterX - preyX), abs(hunterY - preyY)
-
-        # if distX
-        if self.state.initial_state < 4:
-            if self.state.initial_state == 0:
-                if 2 <= abs(distX) <= 4:
-                    wall_type_to_add = 2
-                    self.state.initial_state = 1
-                    self.prev_wall_add_tick = self.state.tickNum
-            
-            if self.state.initial_state == 1:
-                if (self.state.tickNum - self.prev_wall_add_tick) >= self.state.wallPlacementDelay:
-                    wall_type_to_add = 2
-                    self.state.initial_state = 2
-            
-            if self.state.initial_state == 2:
-                if self.state.hunterXVel == -1:
-                    min_dist, wall_idx = float('inf'), None
-                    for i, wall in enumerate(self.state.walls):
-                        if type(wall) == type(VerticalWall(0, 0, 0)) and abs(hunterX - wall.x) < min_dist:
-                            min_dist = abs(hunterX - wall.x)
-                            wall_idx = i
-                    if 2 <= min_dist <= 4 and wall_idx:
-                        wall_idxs_to_delete.append(wall_idx)
-                        self.state.initial_state = 3
-            
-            if self.state.initial_state == 3:
-                if 2 <= abs(distX) <= 3:
-                    wall_type_to_add = 2
-                    self.state.initial_state = 4
-        
-        else:
-            if self.state.maxWalls > 2 and len(self.state.walls) > 2:
-                temp_walls = copy.deepcopy(self.state.walls)
-                wall_idxs_to_delete, area, reachable = self.get_walls_to_delete(hunterX, hunterY, preyX, preyY, temp_walls)
-
-            xdist = self.state.hunterXPos - self.state.preyXPos
-            ydist = self.state.hunterYPos - self.state.preyYPos
-
-            if self.state.hunterXVel == 0:
-                wall_type_to_add = 0
-            elif xdist * self.state.hunterXVel >= 0:
-                wall_type_to_add = 0
-            elif 2 <= abs(xdist) <= 4:
-                wall_type_to_add = 2
-            elif self.state.hunterYVel == 0:
-                wall_type_to_add = 0
-            elif ydist * self.state.hunterYVel >= 0:
-                wall_type_to_add = 0
-            elif 2 <= abs(ydist) <= 4:
-                wall_type_to_add = 1
-
-        return "{0} {1} {2} {3}".format(self.state.gameNum, self.state.tickNum, wall_type_to_add, " ".join(map(str, wall_idxs_to_delete)))
-
 
     def hunter_move_default(self):
         wall_type_to_add = 0
