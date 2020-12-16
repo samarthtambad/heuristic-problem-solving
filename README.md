@@ -1,5 +1,5 @@
 # Heuristic Problem Solving
-A collection of NP hard problems and my solutions to those problems using heuristic algorithms.
+A collection of problems (some NP-hard) and my solutions to those problems using heuristic algorithms.
 
 ## Problems
 1. [Expanding Nim](expanding-nim/README.md)
