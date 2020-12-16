@@ -125,7 +125,7 @@ class EvasionGame:
         elif data == "prey":
             self.is_hunter = False
         elif data == "sendname":
-            to_send = "remember_the_name"
+            to_send = "remember_the_name_old"
         else:
             self.state.set(data)
             self.state.print()
